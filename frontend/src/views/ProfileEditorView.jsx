@@ -913,13 +913,14 @@ export function ProfileEditorView() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-zinc-400 font-medium">Platform / Panel URL</label>
+                        <label className="text-zinc-400 font-medium">Website / Platform URL</label>
                         <input
                           type="text"
-                          value={exp.platformUrl || ""}
+                          value={exp.platformUrl || exp.url || ""}
                           onChange={(e) => {
                             const updated = [...profile.experiences];
                             updated[expIdx].platformUrl = e.target.value;
+                            updated[expIdx].url = e.target.value;
                             setProfile((prev) => ({ ...prev, experiences: updated }));
                             setHasChanges(true);
                           }}
