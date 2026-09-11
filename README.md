@@ -1,6 +1,6 @@
-# 🚀 Arusuka Command Center & Storage Vault
+# 🚀 Omni Command Center & Storage Vault
 
-Arusuka Command Center is a modern, modular, privacy-first personal server dashboard, knowledge aggregator, and storage vault built with **FastAPI**, **React 19**, **Vite**, **Tailwind CSS**, and **WebSocket** real-time streaming.
+Omni Command Center is a modern, modular, privacy-first personal server dashboard, knowledge aggregator, and storage vault built with **FastAPI**, **React 19**, **Vite**, **Tailwind CSS**, and **WebSocket** real-time streaming.
 
 ---
 
@@ -52,7 +52,7 @@ This project is completely portable and can run on any Linux, macOS, or WSL envi
 
 ### 1. Clone & Prerequisites
 ```bash
-git clone https://github.com/arusuka/dashboard.git
+git clone https://github.com/fahmirizal229/omni-command-center.git
 cd dashboard
 ```
 
