@@ -35,7 +35,9 @@ export function ZeppView({ zeppData }) {
             <Flame className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-zinc-100 font-mono">{today?.calorie || 0} kcal</p>
+            <p className="text-2xl font-bold text-zinc-100 font-mono">
+              {today?.calorie ?? today?.calories_kcal ?? today?.calories ?? 0} kcal
+            </p>
             <p className="text-xs text-zinc-400">{t('zepp_calories', 'Kalori')} ({today?.distance_km || 0} km)</p>
           </div>
         </div>

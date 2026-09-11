@@ -7,7 +7,7 @@ import json
 import time
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 import psutil
 from fastapi import APIRouter, Depends
 
@@ -19,7 +19,8 @@ from backend.config import (
     BRAIN_DIR,
     POKEMON_QUEUE,
     is_finance_related,
-    fetch_weather_and_aqi
+    fetch_weather_and_aqi,
+    zepp_client_instance,
 )
 from backend.database import get_db_connection
 from backend.security import get_current_user
@@ -109,22 +110,22 @@ def get_overview(current_user: str = Depends(get_current_user)):
                 cur = conn.cursor()
                 cur.execute("""
                     SELECT COUNT(*) FROM entities
-                    WHERE LOWER(name) NOT LIKE %finance%
-                      AND LOWER(name) NOT LIKE %debt%
-                      AND LOWER(name) NOT LIKE %pinjol%
-                      AND LOWER(name) NOT LIKE %tagihan%
-                      AND LOWER(name) NOT LIKE %wallet%
-                      AND LOWER(name) NOT LIKE %dompet%
-                      AND LOWER(name) NOT LIKE %cicilan%
-                      AND LOWER(name) NOT LIKE %paylater%
+                    WHERE LOWER(name) NOT LIKE '%finance%'
+                      AND LOWER(name) NOT LIKE '%debt%'
+                      AND LOWER(name) NOT LIKE '%pinjol%'
+                      AND LOWER(name) NOT LIKE '%tagihan%'
+                      AND LOWER(name) NOT LIKE '%wallet%'
+                      AND LOWER(name) NOT LIKE '%dompet%'
+                      AND LOWER(name) NOT LIKE '%cicilan%'
+                      AND LOWER(name) NOT LIKE '%paylater%'
                 """)
                 graph_entities = cur.fetchone()[0]
                 cur.execute("""
                     SELECT COUNT(*) FROM relations
-                    WHERE LOWER(source_entity) NOT LIKE %finance%
-                      AND LOWER(target_entity) NOT LIKE %finance%
-                      AND LOWER(source_entity) NOT LIKE %debt%
-                      AND LOWER(target_entity) NOT LIKE %debt%
+                    WHERE LOWER(source_entity) NOT LIKE '%finance%'
+                      AND LOWER(target_entity) NOT LIKE '%finance%'
+                      AND LOWER(source_entity) NOT LIKE '%debt%'
+                      AND LOWER(target_entity) NOT LIKE '%debt%'
                 """)
                 graph_relations = cur.fetchone()[0]
         except Exception as e:
@@ -164,6 +165,57 @@ def get_overview(current_user: str = Depends(get_current_user)):
         except Exception as e:
             print(f"Error fetching weather: {e}")
 
+    # 7. Quick Zepp Fitness Snippet
+    zepp_snippet = {
+        "today": {
+            "steps": 0,
+            "goal": 8000,
+            "distance_km": 0,
+            "calorie": 0,
+            "calories_kcal": 0,
+        },
+        "last_sleep": {
+            "sleep_hours": "--",
+            "sleep_mins": 0,
+        }
+    }
+    if zepp_client_instance:
+        try:
+            today_str = now.strftime("%Y-%m-%d")
+            week_ago_str = (now - timedelta(days=6)).strftime("%Y-%m-%d")
+            records = zepp_client_instance.get_band_data_summary(week_ago_str, today_str)
+            for rec in records:
+                summary = rec.get("summary", {})
+                stp = summary.get("stp", {})
+                slp = summary.get("slp", {})
+                ttl_steps = stp.get("ttl", 0) or 0
+                goal = summary.get("goal", 8000) or 8000
+                dis_m = stp.get("dis", 0) or 0
+                cal = stp.get("cal", 0) or 0
+                
+                dp = slp.get("dp", 0) or 0
+                lt = slp.get("lt", 0) or 0
+                ss = slp.get("ss", 0) or 0
+                total_sleep = dp + lt + ss
+
+                if total_sleep > 0:
+                    zepp_snippet["last_sleep"] = {
+                        "sleep_hours": f"{total_sleep // 60}j {total_sleep % 60}m",
+                        "sleep_mins": total_sleep,
+                    }
+
+                if rec.get("date") == today_str:
+                    zepp_snippet["today"] = {
+                        "steps": ttl_steps,
+                        "goal": goal,
+                        "distance_km": round(dis_m / 1000.0, 2),
+                        "calorie": cal,
+                        "calories": cal,
+                        "calories_kcal": cal,
+                    }
+        except Exception as e:
+            print(f"Error fetching zepp overview: {e}")
+
     return {
         "timestamp": now.strftime("%Y-%m-%d %H:%M:%S"),
         "user": current_user,
@@ -185,6 +237,7 @@ def get_overview(current_user: str = Depends(get_current_user)):
             "graph_relations": graph_relations
         },
         "weather": weather_snippet,
+        "zepp": zepp_snippet,
         "pokemon_queue": pokemon_queue_count
     }
 

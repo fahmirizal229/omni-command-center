@@ -256,7 +256,7 @@ export function OverviewView({ overview, onNavigate }) {
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-emerald-400 font-mono">
-                  {zepp?.today?.calorie || 0} {t('overview_today_calorie', 'kcal')}
+                  {zepp?.today?.calorie ?? zepp?.today?.calories_kcal ?? zepp?.today?.calories ?? 0} {t('overview_today_calorie', 'kcal')}
                 </p>
                 <p className="text-[11px] text-zinc-400">
                   {zepp?.today?.distance_km || 0} km

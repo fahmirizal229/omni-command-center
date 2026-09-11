@@ -51,13 +51,16 @@ def get_zepp_fitness_data(current_user: str = Depends(get_current_user)):
                 "goal_percent": min(100, round((ttl_steps / goal) * 100, 1)) if goal > 0 else 0,
                 "distance_km": round(dis_m / 1000.0, 2),
                 "calories_kcal": cal,
+                "calorie": cal,
+                "calories": cal,
+                "active_calories": cal,
                 "active_mins": wk + rn,
                 "sleep_mins": total_sleep,
                 "sleep_hours": f"{total_sleep // 60}j {total_sleep % 60}m" if total_sleep > 0 else "0j",
                 "deep_sleep_mins": dp,
                 "light_sleep_mins": lt,
                 "rem_mins": ss,
-                "awake_mins": awake
+                "awake_mins": awake,
             }
             history.append(item)
             if total_sleep > 0:
@@ -77,6 +80,8 @@ def get_zepp_fitness_data(current_user: str = Depends(get_current_user)):
                 "goal_percent": 0,
                 "distance_km": 0,
                 "calories_kcal": 0,
+                "calorie": 0,
+                "calories": 0,
                 "active_mins": 0,
                 "sleep_mins": 0,
                 "sleep_hours": "0j"
