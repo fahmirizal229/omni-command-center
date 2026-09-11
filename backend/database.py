@@ -29,37 +29,37 @@ DEFAULT_PROFILE_DATA = {
     },
     "summary": {
         "lead": {
-            "en": "Backend-focused Software Engineer with over 6 years of experience architecting resilient distributed systems, enterprise cloud platforms (IaaS & PaaS), and high-throughput microservices.",
-            "id": "Software Engineer berfokus Backend dengan pengalaman 6+ tahun dalam merancang sistem terdistribusi andal, platform cloud enterprise (IaaS & PaaS), dan microservices throughput tinggi."
+            "en": "Results-driven Senior Backend & Cloud Infrastructure Engineer with 6+ years of experience architecting resilient distributed systems, enterprise cloud platforms (IaaS & PaaS), and high-throughput microservices.",
+            "id": "Senior Backend & Cloud Infrastructure Engineer berpengalaman 6+ tahun dalam merancang arsitektur sistem terdistribusi, platform cloud enterprise (IaaS & PaaS), dan microservices berkinerja tinggi."
         },
         "highlights": [
             {
                 "icon": "Cloud",
                 "titleEn": "Cloud Architecture & Microservices",
                 "titleId": "Arsitektur Cloud & Microservices",
-                "descEn": "Engineered core Cloudraya V2 microservices from scratch: Compute VM lifecycle, S3-compatible Object Storage, Managed Kubernetes provisioning, and usage-based billing engines.",
-                "descId": "Membangun ekosistem microservices Cloudraya V2 dari nol: siklus Compute VM, S3-compatible Object Storage, provisioning Kubernetes terkelola, dan engine billing berbasis pemakaian."
+                "descEn": "Designed and engineered core Cloudraya V2 microservices from scratch, including Compute VM lifecycle, S3-compatible Object Storage, Managed Kubernetes provisioning, and real-time usage-based billing engines.",
+                "descId": "Merancang dan membangun ekosistem microservices Cloudraya V2 dari nol: siklus hidup Compute VM, S3-compatible Object Storage, provisioning Kubernetes terkelola, dan engine billing berbasis pemakaian real-time."
             },
             {
                 "icon": "Server",
-                "titleEn": "Tech Stack & API Mastery",
-                "titleId": "Penguasaan Tech Stack & API",
-                "descEn": "Deep practical mastery in Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, Redis caching, event-driven architectures, and real-time WebSockets (Laravel Reverb).",
-                "descId": "Penguasaan mendalam dalam Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, caching Redis, arsitektur event-driven, dan real-time WebSockets (Laravel Reverb)."
+                "titleEn": "Backend & Distributed Systems",
+                "titleId": "Backend & Sistem Terdistribusi",
+                "descEn": "Extensive hands-on expertise in Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, Redis caching, event-driven messaging, and real-time WebSockets (Laravel Reverb).",
+                "descId": "Keahlian mendalam dalam Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, caching Redis, arsitektur event-driven, dan real-time WebSockets (Laravel Reverb)."
             },
             {
                 "icon": "ShieldCheck",
-                "titleEn": "Reliability & Quality First",
-                "titleId": "Keandalan & Kualitas Kode",
-                "descEn": "Enforcing 99.9% uptime SLA through rigorous automated testing (PHPUnit Unit & Feature tests with microservice mocking), Bitbucket CI/CD, and dedicated L3 production support.",
-                "descId": "Menjaga SLA uptime 99.9% melalui automated testing ketat (PHPUnit Unit & Feature tests dengan microservice mocking), Bitbucket CI/CD, dan dukungan eskalasi L3 produksi."
+                "titleEn": "Reliability & Automated Quality",
+                "titleId": "Keandalan & Otomasi Kualitas",
+                "descEn": "Ensured 99.9% uptime SLA through rigorous automated test suites (PHPUnit Unit & Feature tests with microservice mocking), Bitbucket CI/CD pipelines, and proactive L3 production support.",
+                "descId": "Menjamin SLA uptime 99.9% melalui automated testing ketat (PHPUnit Unit & Feature tests dengan microservice mocking), Bitbucket CI/CD pipeline, dan dukungan eskalasi L3 produksi."
             },
             {
                 "icon": "Layers",
-                "titleEn": "Enterprise & IoT Solutions",
-                "titleId": "Solusi Enterprise & IoT",
-                "descEn": "Proven delivery of real-time IoT sensor telemetry ingestion (Suramadu Bridge), government portals (Surabaya City & Dishub), and enterprise ERP modules (Petrokimia Gresik, WIKA).",
-                "descId": "Rekam jejak terbukti dalam data ingestion telemetri sensor IoT (Jembatan Suramadu), portal pemerintah (Pemkot Surabaya & Dishub), serta ERP BUMN (Petrokimia Gresik, WIKA)."
+                "titleEn": "Enterprise & Real-Time IoT",
+                "titleId": "Solusi Enterprise & IoT Real-Time",
+                "descEn": "Demonstrated track record delivering high-throughput IoT sensor ingestion (Suramadu Bridge), government portals (Surabaya City & Dishub), and enterprise ERP modules (Petrokimia Gresik, WIKA).",
+                "descId": "Rekam jejak terbukti dalam data ingestion telemetri sensor IoT berkecepatan tinggi (Jembatan Suramadu), portal pemerintah (Pemkot Surabaya & Dishub), serta ERP BUMN (Petrokimia Gresik, WIKA)."
             }
         ]
     },
