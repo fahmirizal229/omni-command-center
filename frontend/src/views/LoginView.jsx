@@ -140,10 +140,18 @@ export function LoginView() {
           </button>
         </form>
 
-        {/* Footer Security Badge */}
-        <div className="pt-2 text-center text-[11px] text-zinc-500 flex items-center justify-center space-x-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>PBKDF2 SHA-256 + Sliding Window Rate Limiting</span>
+        {/* Footer Security Badge & Back Link */}
+        <div className="pt-2 flex flex-col items-center space-y-2 text-[11px] text-zinc-500">
+          <div className="flex items-center space-x-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>PBKDF2 SHA-256 + Sliding Window Rate Limiting</span>
+          </div>
+          <a
+            href="https://arusuka.my.id"
+            className="text-zinc-400 hover:text-emerald-400 transition-colors flex items-center space-x-1 font-mono pt-1"
+          >
+            <span>← {t('btn_back_main', 'Kembali ke Web Utama')} (arusuka.my.id)</span>
+          </a>
         </div>
       </div>
     </div>

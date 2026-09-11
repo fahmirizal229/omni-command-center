@@ -17,6 +17,7 @@ export default {
   ws_connecting: "Connecting...",
   ws_offline: "Offline",
   btn_refresh: "Refresh",
+  btn_back_main: "Main Site",
   btn_change_password: "Change Password",
   btn_logout: "Logout",
   logout_confirm: "Are you sure you want to log out from the dashboard?",

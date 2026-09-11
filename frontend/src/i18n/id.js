@@ -17,6 +17,7 @@ export default {
   ws_connecting: "Menghubungkan...",
   ws_offline: "Offline",
   btn_refresh: "Segarkan",
+  btn_back_main: "Kembali ke Web",
   btn_change_password: "Ganti Password",
   btn_logout: "Keluar",
   logout_confirm: "Apakah kamu yakin ingin keluar dari dashboard?",

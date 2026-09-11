@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { RefreshCw, KeyRound, LogOut, User, Globe } from "lucide-react";
+import { RefreshCw, KeyRound, LogOut, User, Globe, ExternalLink, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWebSocket } from "../context/WebSocketContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -38,9 +38,14 @@ export function Navbar({ onRefresh, refreshing, onOpenChangePassword }) {
     <header className="sticky top-0 z-30 bg-[#0c0d11]/90 backdrop-blur-md border-b border-zinc-800 px-4 lg:px-8 py-3 flex items-center justify-between transition-all">
       {/* Brand Identity */}
       <div className="flex items-center space-x-3">
-        <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700/70 flex items-center justify-center text-zinc-100 font-bold text-sm tracking-wide">
-          AR
-        </div>
+        <a
+          href="https://arusuka.my.id"
+          title={t("btn_back_main", "Kembali ke Web Utama (arusuka.my.id)")}
+          className="w-9 h-9 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/70 hover:border-emerald-500/60 flex items-center justify-center text-zinc-100 font-bold text-sm tracking-wide transition-all group shadow-sm"
+        >
+          <span className="group-hover:hidden font-mono">AR</span>
+          <ArrowLeft className="w-4 h-4 text-emerald-400 hidden group-hover:block" />
+        </a>
         <div>
           <h1 className="text-sm sm:text-base font-semibold text-zinc-100 tracking-tight flex items-center gap-1.5">
             Arusuka <span className="text-zinc-400 font-normal">Dashboard</span>
@@ -95,6 +100,15 @@ export function Navbar({ onRefresh, refreshing, onOpenChangePassword }) {
 
       {/* Right User Actions & Language Switcher */}
       <div className="flex items-center space-x-2 sm:space-x-3">
+        {/* Back to Main Site Button */}
+        <a
+          href="https://arusuka.my.id"
+          title={t("btn_back_main", "Kembali ke Web Utama (arusuka.my.id)")}
+          className="px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white transition-all text-xs font-medium flex items-center space-x-1.5 active:scale-95 group shadow-sm"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+          <span className="hidden sm:inline font-mono text-[11px]">{t("btn_back_main", "Main Site")}</span>
+        </a>
         {/* Language Switcher Button */}
         <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
           {supportedLanguages.map((lang) => (
