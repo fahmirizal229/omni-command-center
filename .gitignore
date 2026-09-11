@@ -1,0 +1,36 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Databases & Runtime States (Privacy & Security)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.log
+.env
+.env.*
+dashboard_auth.json
+
+# Node & Frontend Build
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+dist/
+build/
+.DS_Store
+*.local
+
+# Storage & Backups
+storage_vault/
+uploads/
+backups/

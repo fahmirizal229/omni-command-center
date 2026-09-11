@@ -1,0 +1,2580 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Arusuka Command Center</title>
+  
+  <!-- Favicon & PWA App Icons -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="alternate icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/static/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Arusuka" />
+  
+  <!-- Local-First Fast Vendor Libraries -->
+  <script src="/static/vendor/tailwind.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="/static/vendor/lucide.min.js"></script>
+  <script src="/static/vendor/sortable.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .hidden {
+      display: none !important;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #111827;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Trello-like Drag and Drop Styles */
+    .sortable-ghost {
+      opacity: 0.4 !important;
+      background-color: rgba(99, 102, 241, 0.12) !important;
+      border: 2px dashed #6366f1 !important;
+      border-radius: 0.75rem !important;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.2) !important;
+    }
+    .sortable-chosen {
+      cursor: grabbing !important;
+      border-color: #818cf8 !important;
+      transform: scale(1.02);
+      box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.6) !important;
+    }
+    .sortable-drag {
+      opacity: 1 !important;
+      cursor: grabbing !important;
+    }
+    .kanban-dropzone {
+      min-height: 280px;
+      transition: background-color 0.2s ease;
+    }
+    .kanban-dropzone.sortable-over {
+      background-color: rgba(99, 102, 241, 0.05);
+      border-radius: 0.75rem;
+    }
+
+    /* Toast Notification & Shake Animations */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes toastSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    @keyframes toastSlideOut {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.95);
+      }
+    }
+    .toast-enter {
+      animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .toast-exit {
+      animation: toastSlideOut 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased text-slate-100 bg-[#0b0f19] selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- ================= GLOBAL TOAST NOTIFICATION CONTAINER ================= -->
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:right-5 sm:translate-x-0 z-[999999] flex flex-col gap-2.5 pointer-events-none max-w-sm w-[calc(100%-2rem)] sm:w-full"></div>
+
+  <!-- ================= AUTHENTICATION VIEW (LOGIN SCREEN) ================= -->
+  <div id="view-login" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0b0f19] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]">
+    <div id="login-card" class="max-w-md w-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
+      
+      <!-- Brand & Header -->
+      <div class="text-center space-y-2">
+        <div class="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 items-center justify-center text-white shadow-xl shadow-indigo-500/30 font-bold text-2xl mb-2">
+          ✨
+        </div>
+        <h2 class="text-2xl font-extrabold text-white tracking-tight">Arusuka <span class="text-indigo-400">Center</span></h2>
+        <p class="text-xs text-slate-400">Masukkan kredensial akun untuk mengakses server dashboard.</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="form-login" onsubmit="event.preventDefault(); handleLogin(event); return false;" autocomplete="off" class="space-y-4 text-xs">
+        
+        <!-- Error Alert Box -->
+        <div id="login-error-box" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center space-x-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+          <span id="login-error-msg">Username atau password salah.</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1.5">Username</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="login-username" value="" autocomplete="off" required placeholder="Username" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-all" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1.5">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="password" id="login-password" value="" autocomplete="new-password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-all" />
+          </div>
+        </div>
+
+        <button type="button" id="btn-login-submit" onclick="handleLogin(event)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center space-x-2 text-sm cursor-pointer">
+          <span>Masuk ke Dashboard</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+
+      </form>
+
+      <div class="text-center pt-2 border-t border-slate-800/80">
+        <p class="text-[11px] text-slate-500 flex items-center justify-center space-x-1">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Protected by PBKDF2-SHA256 & Session Cookies</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MAIN DASHBOARD VIEW ================= -->
+  <div id="view-dashboard" class="hidden min-h-full flex flex-col">
+
+    <!-- TOP HEADER (Modern Dark Glassmorphism) -->
+    <header class="sticky top-0 z-30 bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-800/80 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          
+          <!-- Left: Brand Logo & Interactive Home Trigger -->
+          <div class="flex items-center space-x-3">
+            <button onclick="switchTab('overview')" class="flex items-center space-x-2.5 text-left group focus:outline-hidden">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 font-bold text-lg group-hover:scale-105 transition-transform">
+                ✨
+              </div>
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h1 class="font-bold text-base sm:text-lg text-white tracking-tight group-hover:text-indigo-400 transition-colors">Arusuka <span class="text-indigo-400">Center</span></h1>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                    Online
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-400 hidden sm:block">Unified Server Command Center</p>
+              </div>
+            </button>
+          </div>
+
+          <!-- Center: Desktop Navigation Tabs -->
+          <nav class="hidden md:flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <button onclick="switchTab('overview')" id="nav-overview" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-white bg-indigo-600 shadow-sm shadow-indigo-500/20 flex items-center space-x-1.5">
+              <i data-lucide="home" class="w-3.5 h-3.5"></i>
+              <span>Home</span>
+            </button>
+            <button onclick="switchTab('tasks')" id="nav-tasks" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center space-x-1.5">
+              <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
+              <span>Task Kanban</span>
+            </button>
+            <button onclick="switchTab('jobs')" id="nav-jobs" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center space-x-1.5">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+              <span>Karir</span>
+            </button>
+            <button onclick="switchTab('brain')" id="nav-brain" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center space-x-1.5">
+              <i data-lucide="brain" class="w-3.5 h-3.5"></i>
+              <span>Second Brain</span>
+            </button>
+            <button onclick="switchTab('system')" id="nav-system" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white flex items-center space-x-1.5">
+              <i data-lucide="cloud-sun" class="w-3.5 h-3.5"></i>
+              <span>Cuaca & Server</span>
+            </button>
+          </nav>
+
+          <!-- Right: User Pill, Password, Refresh, Logout -->
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="text-right hidden lg:block">
+              <div id="live-clock" class="text-xs font-bold text-slate-200 font-mono">00:00:00 WIB</div>
+              <div id="live-date" class="text-[10px] text-slate-500">Loading...</div>
+            </div>
+
+            <button onclick="refreshAllData(true)" class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all focus:outline-hidden" title="Segarkan Data">
+              <i data-lucide="refresh-cw" id="refresh-icon" class="w-4 h-4"></i>
+            </button>
+
+            <!-- User Menu & Password Change -->
+            <button onclick="openChangePasswordModal()" class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all focus:outline-hidden" title="Ganti Password">
+              <i data-lucide="key-round" class="w-4 h-4"></i>
+            </button>
+
+            <button onclick="handleLogout()" class="p-2 rounded-xl text-rose-400 hover:bg-rose-500/10 bg-slate-900 border border-slate-800 transition-all focus:outline-hidden" title="Keluar / Logout">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8">
+
+      <!-- ================= TAB 1: RINGKASAN (OVERVIEW) ================= -->
+      <div id="tab-content-overview" class="tab-content space-y-6">
+        
+        <!-- Quick Metric Cards Grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          
+          <!-- Personal Task Card -->
+          <div onclick="switchTab('tasks')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-indigo-500/40 hover:shadow-indigo-500/5 transition-all col-span-2 sm:col-span-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Personal Tasks</span>
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <i data-lucide="check-square" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline space-x-2">
+                <h3 id="stat-task-active" class="text-lg sm:text-2xl font-extrabold text-indigo-400 tracking-tight">0</h3>
+                <span class="text-xs text-slate-400 font-semibold">Tugas Aktif</span>
+              </div>
+              <div class="mt-1 flex items-center text-xs text-slate-400 space-x-1.5">
+                <span id="stat-task-in-progress" class="text-violet-400 font-semibold">0 Sedang Jalan</span>
+                <span>•</span>
+                <span id="stat-task-urgent" class="text-rose-400 font-semibold">0 Urgent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- System Health Card -->
+          <div onclick="switchTab('system')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-emerald-500/40 hover:shadow-emerald-500/5 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Server</span>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                <i data-lucide="server" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <h3 id="stat-sys-cpu" class="text-lg sm:text-2xl font-extrabold text-white tracking-tight">CPU 0%</h3>
+              <div class="mt-1 flex items-center text-xs text-slate-400 space-x-1">
+                <span>RAM:</span>
+                <span id="stat-sys-ram" class="font-semibold text-emerald-400">0%</span>
+                <span>•</span>
+                <span id="stat-sys-uptime" class="text-slate-500">0h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Career Kanban Card -->
+          <div onclick="switchTab('jobs')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-sky-500/40 hover:shadow-sky-500/5 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Karir Hunter</span>
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+                <i data-lucide="briefcase" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline space-x-2">
+                <h3 id="stat-job-active" class="text-lg sm:text-2xl font-extrabold text-sky-400 tracking-tight">0</h3>
+                <span class="text-xs text-slate-400 font-semibold">Lamaran</span>
+              </div>
+              <div class="mt-1 flex items-center text-xs text-slate-400 space-x-1">
+                <span id="stat-job-interview" class="text-amber-400 font-semibold">0 Interview</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second Brain & Graph Card -->
+          <div onclick="switchTab('brain')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-violet-500/40 hover:shadow-violet-500/5 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Second Brain</span>
+              <div class="w-8 h-8 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center border border-violet-500/20">
+                <i data-lucide="brain" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <h3 id="stat-brain-notes" class="text-lg sm:text-2xl font-extrabold text-white tracking-tight">0 Catatan</h3>
+              <div class="mt-1 flex items-center text-xs text-slate-400 space-x-1">
+                <span id="stat-graph-entities" class="font-semibold text-violet-400">0 entitas graph</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Surabaya Weather Card -->
+          <div onclick="switchTab('system')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm hover:border-amber-500/40 hover:shadow-amber-500/5 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Surabaya AQI</span>
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+                <i data-lucide="cloud-sun" class="w-4 h-4"></i>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="flex items-baseline space-x-1">
+                <h3 id="stat-weather-temp" class="text-lg sm:text-2xl font-extrabold text-white tracking-tight">-- °C</h3>
+                <span id="stat-weather-icon" class="text-base">🌤️</span>
+              </div>
+              <div class="mt-1 flex items-center text-xs text-slate-400 space-x-1">
+                <span id="stat-weather-aqi" class="font-semibold text-amber-400">AQI --</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Two Column Layout: Server Status & Weather + BMKG -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Left 2 Cols: System Resource Monitoring -->
+          <div class="lg:col-span-2 bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                  <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+                <h3 class="font-bold text-white text-sm sm:text-base">Kondisi Server & Keamanan</h3>
+              </div>
+              <span id="sys-uptime" class="text-xs font-mono text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md">Uptime: 0h</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- CPU Load Bar -->
+              <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-slate-400">CPU Usage</span>
+                  <span id="sys-cpu-val" class="font-bold text-slate-100 font-mono">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div id="sys-cpu-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- RAM Memory Bar -->
+              <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-slate-400">RAM Usage</span>
+                  <span id="sys-ram-val" class="font-bold text-slate-100 font-mono">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div id="sys-ram-bar" class="bg-violet-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div id="sys-ram-detail" class="text-[10px] text-slate-500 mt-1">0 GB / 0 GB</div>
+              </div>
+
+              <!-- Disk Usage Bar -->
+              <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-slate-400">Disk Storage</span>
+                  <span id="sys-disk-val" class="font-bold text-slate-100 font-mono">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div id="sys-disk-bar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div id="sys-disk-detail" class="text-[10px] text-slate-500 mt-1">Free 0 GB</div>
+              </div>
+            </div>
+
+            <!-- Security Badge & Pokemon Status Row -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs border-t border-slate-800">
+              <div class="flex items-center space-x-2">
+                <span class="font-semibold text-slate-400">Fail2ban SSH Defense:</span>
+                <span id="sys-fail2ban-badge" class="inline-flex items-center px-2 py-0.5 rounded-md font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Active & Protected
+                </span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="font-semibold text-slate-400">Pokémon Bot Queue:</span>
+                <span id="sys-pokemon-badge" class="inline-flex items-center px-2 py-0.5 rounded-md font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  0 antrean
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 1 Col: Surabaya Weather & BMKG Snippet -->
+          <div onclick="switchTab('system')" class="cursor-pointer bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm hover:border-sky-500/40 hover:shadow-sky-500/5 transition-all space-y-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                  <div class="w-7 h-7 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+                    <i data-lucide="cloud-sun" class="w-4 h-4"></i>
+                  </div>
+                  <h3 class="font-bold text-white text-sm sm:text-base">Surabaya Weather & AQI</h3>
+                </div>
+                <span id="weather-icon" class="text-xl">🌤️</span>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between">
+                <div>
+                  <div class="flex items-baseline space-x-1">
+                    <span id="weather-temp" class="text-3xl font-extrabold text-white tracking-tight">--</span>
+                    <span class="text-base font-semibold text-slate-400">°C</span>
+                  </div>
+                  <p id="weather-desc" class="text-xs text-slate-400 font-medium mt-0.5">Cerah Berawan</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] uppercase font-bold text-slate-500">Kualitas Udara</span>
+                  <div id="weather-aqi-badge" class="mt-1 inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    AQI --
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BMKG Earthquake snippet -->
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 text-xs space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-200 flex items-center">
+                  <i data-lucide="activity" class="w-3.5 h-3.5 text-rose-400 mr-1.5"></i>
+                  BMKG Gempa Terkini
+                </span>
+                <div class="flex items-center space-x-1.5">
+                  <span id="bmkg-dist-badge" class="font-bold px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px]">-- km SBY</span>
+                  <span id="bmkg-mag" class="font-bold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px]">M --</span>
+                </div>
+              </div>
+              <p id="bmkg-location" class="text-slate-300 truncate">Memuat data BMKG...</p>
+              <p id="bmkg-potential" class="text-[10px] text-slate-500">Tidak berpotensi tsunami</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Zepp Amazfit Activity & Fitness Snapshot -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center border border-teal-500/20">
+                <i data-lucide="footprints" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-sm sm:text-base">Aktivitas & Kebugaran Harian (Zepp / Amazfit)</h3>
+              </div>
+            </div>
+            <span id="zepp-overview-status" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+              Synced
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+            <!-- Steps & Progress -->
+            <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-2">
+              <div class="flex items-center justify-between text-slate-400 font-medium">
+                <span>Langkah Hari Ini</span>
+                <span id="zepp-step-percent" class="text-teal-400 font-bold">0%</span>
+              </div>
+              <div class="flex items-baseline space-x-1.5">
+                <span id="zepp-steps-today" class="text-2xl font-black text-white">0</span>
+                <span class="text-slate-500 font-semibold text-xs">/ <span id="zepp-goal-steps">8.000</span></span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div id="zepp-progress-bar" class="bg-teal-400 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Distance -->
+            <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-1">
+              <div class="text-slate-400 font-medium flex items-center justify-between">
+                <span>Jarak Tempuh</span>
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-sky-400"></i>
+              </div>
+              <div class="flex items-baseline space-x-1">
+                <span id="zepp-distance" class="text-2xl font-black text-white">0.00</span>
+                <span class="text-slate-500 font-semibold text-xs">km</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Estimasi jarak bergerak</p>
+            </div>
+
+            <!-- Calories -->
+            <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-1">
+              <div class="text-slate-400 font-medium flex items-center justify-between">
+                <span>Kalori Terbakar</span>
+                <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-400"></i>
+              </div>
+              <div class="flex items-baseline space-x-1">
+                <span id="zepp-calories" class="text-2xl font-black text-white">0</span>
+                <span class="text-slate-500 font-semibold text-xs">kcal</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Aktivitas harian</p>
+            </div>
+
+            <!-- Sleep Summary -->
+            <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-1">
+              <div class="text-slate-400 font-medium flex items-center justify-between">
+                <span>Tidur Terakhir</span>
+                <i data-lucide="moon" class="w-3.5 h-3.5 text-indigo-400"></i>
+              </div>
+              <div class="flex items-baseline space-x-1">
+                <span id="zepp-sleep-duration" class="text-2xl font-black text-white">--</span>
+              </div>
+              <p id="zepp-sleep-sub" class="text-[10px] text-slate-500">Deep: -- | REM: --</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Second Brain Notes Feed -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+              </div>
+              <h3 class="font-bold text-white text-sm sm:text-base">Catatan & Kliping Terbaru (Second Brain)</h3>
+            </div>
+            <button onclick="switchTab('brain')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline">Semua Catatan →</button>
+          </div>
+          <div id="overview-recent-notes" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= TAB 2: PERSONAL TASK KANBAN ================= -->
+      <div id="tab-content-tasks" class="tab-content hidden space-y-6">
+        
+        <!-- Personal Task Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-sm">
+          <div>
+            <div class="flex items-center space-x-2.5">
+              <h2 class="text-lg sm:text-xl font-bold text-white">Personal Task Kanban Board</h2>
+              <span id="task-active-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">0 Aktif</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 flex items-center space-x-1.5">
+              <i data-lucide="move" class="w-3.5 h-3.5 text-indigo-400 inline"></i>
+              <span>Drag & drop card antar kolom layaknya Trello untuk memindahkan status tugas.</span>
+            </p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openTaskModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-500/20 transition-all flex items-center space-x-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Tambah Task</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Task Filters: Search, Category, Priority -->
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 shadow-sm space-y-3">
+          <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+            <!-- Search Box -->
+            <div class="relative w-full md:w-80">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="task-search-input" oninput="filterTasks()" placeholder="Cari judul atau detail tugas..." class="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+            </div>
+
+            <!-- Priority Filter -->
+            <div class="flex items-center space-x-2 w-full md:w-auto">
+              <span class="text-xs text-slate-400 font-semibold whitespace-nowrap hidden sm:inline">Prioritas:</span>
+              <select id="task-priority-filter" onchange="filterTasks()" class="w-full md:w-auto px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-hidden focus:border-indigo-500">
+                <option value="all">Semua Prioritas</option>
+                <option value="urgent">🔥 Urgent</option>
+                <option value="high">⚡ High</option>
+                <option value="medium">🔹 Medium</option>
+                <option value="low">⚪ Low</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Category Pills Filter -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 custom-scrollbar" id="task-category-pills">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Mobile Column Switcher (Visible only on small screens) -->
+          <div class="md:hidden flex overflow-x-auto space-x-1.5 pt-2 border-t border-slate-800/80 custom-scrollbar" id="mobile-task-tabs">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Personal Task Kanban Columns Container (5 Columns) -->
+        <div id="task-kanban-container" class="grid grid-cols-1 md:grid-cols-5 gap-3.5 items-start">
+          <!-- Rendered by JS -->
+        </div>
+
+      </div>
+
+      <!-- ================= TAB 3: KARIR & JOB HUNTER KANBAN ================= -->
+      <div id="tab-content-jobs" class="tab-content hidden space-y-6">
+        
+        <!-- Job Hunter Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-sm">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-white">Career & Job Hunter Kanban Tracker</h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1 flex items-center space-x-1.5">
+              <i data-lucide="move" class="w-3.5 h-3.5 text-sky-400 inline"></i>
+              <span>Geser kartu lamaran antar kolom untuk memperbarui status proses seleksi.</span>
+            </p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="openJobModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-sky-500/20 transition-all flex items-center space-x-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Tambah Lamaran</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search & Mobile Column Switcher -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="job-search-input" oninput="filterJobs()" placeholder="Cari perusahaan, posisi, atau catatan..." class="w-full pl-10 pr-4 py-2 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all" />
+          </div>
+          
+          <!-- Mobile Kanban Tab Selector -->
+          <div class="sm:hidden flex overflow-x-auto space-x-1.5 pb-1 custom-scrollbar" id="mobile-kanban-tabs">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Kanban Columns Container -->
+        <div id="kanban-container" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-start">
+          <!-- Columns rendered by JS -->
+        </div>
+
+      </div>
+
+      <!-- ================= TAB 4: SECOND BRAIN & KNOWLEDGE GRAPH ================= -->
+      <div id="tab-content-brain" class="tab-content hidden space-y-6">
+        
+        <!-- Second Brain Header -->
+        <div class="bg-slate-900/90 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-white">Second Brain & Knowledge Memory</h2>
+            <p class="text-xs sm:text-sm text-slate-400">Vault catatan Markdown, web clipper, dan knowledge graph relations.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="brain-search-input" oninput="searchBrainNotes()" placeholder="Cari catatan..." class="w-full pl-10 pr-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Knowledge Graph Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/20">
+              <i data-lucide="network" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase">Total Entitas Graph</div>
+              <div id="brain-graph-entities-val" class="text-2xl font-extrabold text-white">0</div>
+            </div>
+          </div>
+          <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold text-lg border border-violet-500/20">
+              <i data-lucide="git-fork" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase">Relasi Antar Entitas</div>
+              <div id="brain-graph-relations-val" class="text-2xl font-extrabold text-white">0</div>
+            </div>
+          </div>
+          <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/20">
+              <i data-lucide="inbox" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase">Inbox Web Clip</div>
+              <div id="brain-inbox-count-val" class="text-2xl font-extrabold text-white">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Grid -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-white text-sm sm:text-base">Daftar Dokumen Second Brain</h3>
+            <span id="brain-note-count" class="text-xs text-slate-400 font-semibold">0 Catatan</span>
+          </div>
+          <div id="brain-notes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= TAB 5: CUACA, BMKG & SISTEM ================= -->
+      <div id="tab-content-system" class="tab-content hidden space-y-6">
+        
+        <!-- Detailed Weather & AQI Card -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-lg font-bold text-white">Surabaya Live Weather & Air Quality</h2>
+              <p class="text-xs text-slate-400">Koordinat Rumah & Kantor: Surabaya (-7.2575, 112.7521)</p>
+            </div>
+            <span id="weather-detail-icon" class="text-2xl">🌤️</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+              <span class="text-xs text-slate-400 font-semibold">Suhu Udara</span>
+              <div id="wd-temp" class="text-2xl font-bold text-white mt-1">-- °C</div>
+              <div id="wd-feels" class="text-[10px] text-slate-500 mt-0.5">Terasa seperti -- °C</div>
+            </div>
+            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+              <span class="text-xs text-slate-400 font-semibold">Kelembapan</span>
+              <div id="wd-humidity" class="text-2xl font-bold text-white mt-1">-- %</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Kelembapan relatif</div>
+            </div>
+            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+              <span class="text-xs text-slate-400 font-semibold">Kecepatan Angin</span>
+              <div id="wd-wind" class="text-2xl font-bold text-white mt-1">-- km/j</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Kecepatan permukaan</div>
+            </div>
+            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+              <span class="text-xs text-slate-400 font-semibold">Peluang Hujan</span>
+              <div id="wd-rain" class="text-2xl font-bold text-white mt-1">-- %</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Prediksi hari ini</div>
+            </div>
+          </div>
+
+          <!-- AQI Alert Box -->
+          <div id="wd-aqi-box" class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs flex items-start space-x-3">
+            <span id="wd-aqi-icon" class="text-xl">🟡</span>
+            <div>
+              <div class="font-bold text-slate-100" id="wd-aqi-title">Kualitas Udara: Sedang (AQI --)</div>
+              <p class="text-slate-400 mt-0.5" id="wd-aqi-advice">Memuat saran kesehatan...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- BMKG Earthquake Guardian Card (Latest) -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+              </div>
+              <h3 class="font-bold text-white text-sm sm:text-base">BMKG Gempa Terkini (Real-time Indonesia)</h3>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="bmkg-detail-dist" class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">-- km dari Surabaya</span>
+              <span id="bmkg-detail-mag" class="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">M --</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="space-y-2">
+              <div><span class="font-semibold text-slate-400">Waktu Gempa:</span> <span id="bmkg-time" class="font-bold text-slate-200">--</span></div>
+              <div><span class="font-semibold text-slate-400">Lokasi / Wilayah:</span> <span id="bmkg-wilayah" class="font-bold text-slate-200">--</span></div>
+              <div><span class="font-semibold text-slate-400">Kedalaman:</span> <span id="bmkg-depth" class="font-bold text-slate-200">--</span></div>
+              <div><span class="font-semibold text-slate-400">Koordinat:</span> <span id="bmkg-coords" class="font-bold text-slate-200 font-mono">--</span></div>
+              <div><span class="font-semibold text-slate-400">Potensi / Dampak:</span> <span id="bmkg-potensi-detail" class="font-bold text-emerald-400">--</span></div>
+              <div><span class="font-semibold text-slate-400">Wilayah Dirasakan:</span> <span id="bmkg-dirasakan" class="text-slate-300">--</span></div>
+            </div>
+            <div class="flex flex-col justify-center items-center p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 text-center">
+              <p class="text-slate-400 mb-2 font-medium">Shakemap Resmi BMKG:</p>
+              <a id="bmkg-shakemap-link" href="#" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-indigo-400 border border-indigo-500/30 rounded-xl font-bold shadow-sm transition-all inline-flex items-center space-x-1.5">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Buka Shakemap Peta Gempa</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 Gempa Bumi Terbaru (BMKG Dirasakan / Terkini) -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+                <i data-lucide="list" class="w-4 h-4"></i>
+              </div>
+              <h3 class="font-bold text-white text-sm sm:text-base">5 Gempa Bumi Terbaru di Indonesia (BMKG)</h3>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400">Radar Radius Surabaya</span>
+          </div>
+
+          <div id="bmkg-recent-list" class="space-y-3">
+            <div class="text-center py-6 text-slate-500 text-xs">Memuat 5 gempa bumi terbaru...</div>
+          </div>
+        </div>
+
+        <!-- Jadwal Otomatis & Cron Rutinitas (Active Schedules) -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-sm sm:text-base">Jadwal Otomatis & Cron Rutinitas (Active Schedules)</h3>
+                <p class="text-[11px] text-slate-400">Daftar automasi background, AI routine, dan timer sistem yang sedang aktif</p>
+              </div>
+            </div>
+            <span id="schedules-count-badge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">-- Aktif</span>
+          </div>
+
+          <div id="schedules-list" class="grid grid-cols-1 gap-3.5">
+            <div class="text-center py-6 text-slate-500 text-xs">Memuat daftar jadwal cron...</div>
+          </div>
+        </div>
+
+        <!-- Zepp Amazfit Health, Activity & Sleep Tracker -->
+        <div class="bg-slate-900/90 rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center border border-teal-500/20">
+                <i data-lucide="activity" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-sm sm:text-base">Zepp Health & Fitness Tracker (Amazfit Sync)</h3>
+                <p class="text-[11px] text-slate-400">Sinkronisasi langsung data aktivitas fisik, langkah, kalori, dan kualitas tidur</p>
+              </div>
+            </div>
+            <span id="zepp-full-status" class="px-2.5 py-1 rounded-md text-xs font-bold bg-teal-500/10 text-teal-400 border border-teal-500/20">
+              🟢 Terhubung
+            </span>
+          </div>
+
+          <!-- Top Grid: Today Stats & Sleep Details -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+            
+            <!-- Left: Today's Target & Active Stats -->
+            <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-200">Aktivitas Hari Ini (<span id="zepp-detail-date">--</span>)</span>
+                <span id="zepp-detail-percent" class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/10 text-teal-400 border border-teal-500/20">0% dari Target</span>
+              </div>
+
+              <div>
+                <div class="flex items-baseline justify-between mb-1.5">
+                  <div class="flex items-baseline space-x-1.5">
+                    <span id="zepp-detail-steps" class="text-3xl font-black text-white">0</span>
+                    <span class="text-xs text-slate-400 font-semibold">Langkah</span>
+                  </div>
+                  <span class="text-slate-400 text-xs font-semibold">Target: <span id="zepp-detail-goal">8.000</span></span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                  <div id="zepp-detail-progress-bar" class="bg-gradient-to-r from-teal-500 to-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/60 text-center">
+                <div class="p-2 bg-slate-900/60 rounded-lg">
+                  <span class="text-[10px] text-slate-500 block">Jarak</span>
+                  <span id="zepp-detail-distance" class="text-sm font-bold text-sky-400">0.00 km</span>
+                </div>
+                <div class="p-2 bg-slate-900/60 rounded-lg">
+                  <span class="text-[10px] text-slate-500 block">Kalori</span>
+                  <span id="zepp-detail-calories" class="text-sm font-bold text-amber-400">0 kcal</span>
+                </div>
+                <div class="p-2 bg-slate-900/60 rounded-lg">
+                  <span class="text-[10px] text-slate-500 block">Waktu Aktif</span>
+                  <span id="zepp-detail-active-time" class="text-sm font-bold text-teal-400">0 m</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Last Sleep Analysis -->
+            <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-200">Kualitas Tidur Terakhir (<span id="zepp-sleep-date">--</span>)</span>
+                <span id="zepp-sleep-total-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">-- Total</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800/50">
+                  <span class="text-[10px] text-indigo-400 block font-semibold">Deep Sleep</span>
+                  <span id="zepp-deep-sleep" class="text-sm font-bold text-slate-100">0m</span>
+                  <span class="text-[9px] text-slate-500 block">Pemulihan fisik</span>
+                </div>
+                <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800/50">
+                  <span class="text-[10px] text-sky-400 block font-semibold">Light Sleep</span>
+                  <span id="zepp-light-sleep" class="text-sm font-bold text-slate-100">0m</span>
+                  <span class="text-[9px] text-slate-500 block">Tidur ringan</span>
+                </div>
+                <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800/50">
+                  <span class="text-[10px] text-purple-400 block font-semibold">REM Sleep</span>
+                  <span id="zepp-rem-sleep" class="text-sm font-bold text-slate-100">0m</span>
+                  <span class="text-[9px] text-slate-500 block">Memori & otak</span>
+                </div>
+                <div class="p-2.5 bg-slate-900/60 rounded-lg border border-slate-800/50">
+                  <span class="text-[10px] text-rose-400 block font-semibold">Awake</span>
+                  <span id="zepp-awake-sleep" class="text-sm font-bold text-slate-100">0m</span>
+                  <span class="text-[9px] text-slate-500 block">Terbangun</span>
+                </div>
+              </div>
+
+              <p class="text-[11px] text-slate-400 bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/40">
+                💡 <strong class="text-slate-300 font-semibold">Catatan Kebugaran:</strong> Deep sleep & REM yang cukup membantu pemulihan sistem saraf dan stamina untuk produktivitas maksimal.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Bottom: 7-Day Step History Mini Bars -->
+          <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-200">Tren Langkah 7 Hari Terakhir</span>
+              <span class="text-slate-400 text-[11px]">Rata-rata aktivitas mingguan</span>
+            </div>
+
+            <div id="zepp-history-bars" class="grid grid-cols-7 gap-2 items-end pt-4 h-36">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- ================= MOBILE BOTTOM NAVIGATION BAR (DARK) ================= -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0b0f19]/95 backdrop-blur-md border-t border-slate-800 shadow-2xl px-2 py-1.5 flex items-center justify-around">
+      <button onclick="switchTab('overview')" id="m-nav-overview" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-indigo-400 font-bold transition-all">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Home</span>
+      </button>
+      <button onclick="switchTab('tasks')" id="m-nav-tasks" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 font-medium transition-all">
+        <i data-lucide="check-square" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Tasks</span>
+      </button>
+      <button onclick="switchTab('jobs')" id="m-nav-jobs" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 font-medium transition-all">
+        <i data-lucide="briefcase" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Karir</span>
+      </button>
+      <button onclick="switchTab('brain')" id="m-nav-brain" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 font-medium transition-all">
+        <i data-lucide="brain" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Brain</span>
+      </button>
+      <button onclick="switchTab('system')" id="m-nav-system" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 font-medium transition-all">
+        <i data-lucide="cloud-sun" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Server</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ================= MODAL: CHANGE PASSWORD ================= -->
+  <div id="modal-change-password" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-800 space-y-4 text-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center space-x-2">
+          <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i>
+          <span>Ganti Password Dashboard</span>
+        </h3>
+        <button onclick="closeChangePasswordModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-change-password" onsubmit="handleChangePassword(event)" class="space-y-3.5 text-xs">
+        <div id="pwd-error-box" class="hidden p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300"></div>
+        <div id="pwd-success-box" class="hidden p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300"></div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Password Saat Ini *</label>
+          <input type="password" id="pwd-old" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Password Baru (min 6 karakter) *</label>
+          <input type="password" id="pwd-new" required minlength="6" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Konfirmasi Password Baru *</label>
+          <input type="password" id="pwd-confirm" required minlength="6" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+        </div>
+
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-all">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all">Simpan Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD PERSONAL TASK ================= -->
+  <div id="modal-task" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-800 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar text-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center space-x-2">
+          <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-400"></i>
+          <span>Tambah Personal Task Baru</span>
+        </h3>
+        <button onclick="closeTaskModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-task" onsubmit="submitTask(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Judul Task *</label>
+          <input type="text" id="task-title" required placeholder="Contoh: Refactor backend caching, beli hosting, dll" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Deskripsi / Catatan</label>
+          <textarea id="task-desc" rows="2" placeholder="Detail langkah pengerjaan atau catatan..." class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Kategori</label>
+            <input type="text" id="task-category" list="category-suggestions" value="Personal" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+            <datalist id="category-suggestions">
+              <option value="Personal">
+              <option value="Dev & Server">
+              <option value="Project">
+              <option value="Learning">
+              <option value="Finance & Admin">
+            </datalist>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tingkat Prioritas</label>
+            <select id="task-priority" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500">
+              <option value="medium">🔹 Medium</option>
+              <option value="high">⚡ High</option>
+              <option value="urgent">🔥 Urgent</option>
+              <option value="low">⚪ Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Status Awal</label>
+            <select id="task-status" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500">
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="backlog">Backlog / Ide</option>
+              <option value="review">Review / Hold</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tenggat Waktu / Due Date</label>
+            <input type="date" id="task-due-date" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500" />
+          </div>
+        </div>
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-all">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all">Simpan ke Kanban</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: EDIT PERSONAL TASK ================= -->
+  <div id="modal-edit-task" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-800 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar text-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center space-x-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-indigo-400"></i>
+          <span>Edit Personal Task</span>
+        </h3>
+        <button onclick="closeEditTaskModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-edit-task" onsubmit="submitEditTask(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="edit-task-id" />
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Judul Task *</label>
+          <input type="text" id="edit-task-title" required class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Deskripsi / Catatan</label>
+          <textarea id="edit-task-desc" rows="2" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Kategori</label>
+            <input type="text" id="edit-task-category" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tingkat Prioritas</label>
+            <select id="edit-task-priority" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500">
+              <option value="urgent">🔥 Urgent</option>
+              <option value="high">⚡ High</option>
+              <option value="medium">🔹 Medium</option>
+              <option value="low">⚪ Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Status</label>
+            <select id="edit-task-status" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500">
+              <option value="backlog">Backlog / Ide</option>
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="review">Review / Hold</option>
+              <option value="done">Done 🎉</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tenggat Waktu / Due Date</label>
+            <input type="date" id="edit-task-due-date" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500" />
+          </div>
+        </div>
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeEditTaskModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-all">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD JOB APPLICATION ================= -->
+  <div id="modal-job" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-800 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar text-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base">Tambah Lamaran Kerja</h3>
+        <button onclick="closeJobModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-job" onsubmit="submitJob(event)" class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Perusahaan / Startup</label>
+            <input type="text" id="job-company" required placeholder="Google, Tokopedia, dll" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Posisi / Role</label>
+            <input type="text" id="job-role" required placeholder="Senior Backend Engineer, dll" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-indigo-500 focus:outline-hidden" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Lokasi</label>
+            <input type="text" id="job-location" value="Remote" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Gaji / Range</label>
+            <input type="text" id="job-salary" value="Kompetitif" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Status Awal</label>
+          <select id="job-status" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white">
+            <option value="wishlist">Wishlist / Disimpan</option>
+            <option value="applied">Applied / Terkirim</option>
+            <option value="screening">Screening HR</option>
+            <option value="tech_test">Tech Test / Assignment</option>
+            <option value="interview">Interview User/HR</option>
+            <option value="offering">Offering</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Jadwal Selanjutnya (Opsional)</label>
+          <input type="text" id="job-schedule" placeholder="Misal: Interview User 15 Sep 14:00 WIB" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Link Lowongan (URL)</label>
+          <input type="url" id="job-url" placeholder="https://..." class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Catatan Tambahan</label>
+          <textarea id="job-notes" rows="2" placeholder="Tech stack, interviewer, dll" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white"></textarea>
+        </div>
+        <div class="pt-2 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeJobModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition-all">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl shadow-md shadow-sky-500/20 transition-all">Tambah ke Kanban</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= JAVASCRIPT APP LOGIC ================= -->
+  <script>
+    // Safe Lucide Icons Caller
+    function safeLucide() {
+      try {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.safeLucide();
+        }
+      } catch (e) {
+        console.warn('Lucide icon error suppressed:', e);
+      }
+    }
+
+    // State Store
+    let isAuthenticated = false;
+    let currentUser = '';
+    let currentTab = 'overview';
+    let globalOverview = null;
+    let globalTasks = null;
+    let globalJobs = null;
+    let globalBrain = null;
+    let activeTaskCategory = 'all';
+    let activeMobileTaskCol = 'todo';
+    let activeMobileKanbanCol = 'applied';
+    
+    // Sortable Instances
+    let taskSortables = [];
+    let jobSortables = [];
+
+    const TASK_COLUMNS = {
+      backlog: { label: 'Backlog / Ide', icon: 'lightbulb', color: 'border-slate-700 bg-slate-900/60' },
+      todo: { label: 'To Do', icon: 'circle', color: 'border-sky-500/30 bg-sky-950/20' },
+      in_progress: { label: 'In Progress', icon: 'clock', color: 'border-indigo-500/30 bg-indigo-950/20' },
+      review: { label: 'Review / Hold', icon: 'pause-circle', color: 'border-amber-500/30 bg-amber-950/20' },
+      done: { label: 'Done 🎉', icon: 'check-circle-2', color: 'border-emerald-500/30 bg-emerald-950/20' }
+    };
+
+    const PRIORITY_BADGES = {
+      urgent: { label: 'Urgent', icon: '🔥', badge: 'bg-rose-500/10 text-rose-400 border-rose-500/30' },
+      high: { label: 'High', icon: '⚡', badge: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
+      medium: { label: 'Medium', icon: '🔹', badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' },
+      low: { label: 'Low', icon: '⚪', badge: 'bg-slate-800 text-slate-400 border-slate-700' }
+    };
+
+    const STATUS_LABELS = {
+      wishlist: { label: 'Wishlist', color: 'bg-slate-800 text-slate-300 border-slate-700' },
+      applied: { label: 'Applied', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' },
+      screening: { label: 'Screening HR', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+      tech_test: { label: 'Tech Test', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' },
+      interview: { label: 'Interview', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' },
+      offering: { label: 'Offering 🎉', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+      rejected: { label: 'Rejected', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' }
+    };
+
+    // Live Clock Update
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour12: false }) + ' WIB';
+      const dateStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+      const clockEl = document.getElementById('live-clock');
+      const dateEl = document.getElementById('live-date');
+      if (clockEl) clockEl.innerText = timeStr;
+      if (dateEl) dateEl.innerText = dateStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- Authentication Handling ---
+    async function checkAuth() {
+      try {
+        const token = localStorage.getItem('arusuka_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const res = await fetch('/api/auth/status', { headers });
+        const data = await res.json();
+        if (data.authenticated) {
+          isAuthenticated = true;
+          currentUser = data.username;
+          showDashboardView();
+        } else {
+          showLoginView();
+        }
+      } catch (err) {
+        showLoginView();
+      }
+    }
+
+    function showLoginView() {
+      isAuthenticated = false;
+      const loginForm = document.getElementById('form-login');
+      if (loginForm) loginForm.reset();
+      const clearInputs = () => {
+        const uInput = document.getElementById('login-username');
+        const pInput = document.getElementById('login-password');
+        if (uInput) uInput.value = '';
+        if (pInput) pInput.value = '';
+      };
+      clearInputs();
+      setTimeout(clearInputs, 50);
+      setTimeout(clearInputs, 200);
+
+      const loginEl = document.getElementById('view-login');
+      const dashEl = document.getElementById('view-dashboard');
+      if (loginEl) {
+        loginEl.classList.remove('hidden');
+        loginEl.style.display = 'flex';
+      }
+      if (dashEl) {
+        dashEl.classList.add('hidden');
+        dashEl.style.display = 'none';
+      }
+      safeLucide();
+    }
+
+    function showDashboardView() {
+      isAuthenticated = true;
+      const loginEl = document.getElementById('view-login');
+      const dashEl = document.getElementById('view-dashboard');
+      if (loginEl) {
+        loginEl.classList.add('hidden');
+        loginEl.style.display = 'none';
+      }
+      if (dashEl) {
+        dashEl.classList.remove('hidden');
+        dashEl.style.display = 'flex';
+      }
+      const initialTab = window.location.hash.replace('#', '') || 'overview';
+      switchTab(initialTab, false);
+      refreshAllData(true);
+      safeLucide();
+    }
+
+    // --- Toast Notification System ---
+    function showToast(message, type = 'info', title = '', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      
+      let borderClass = 'border-slate-800';
+      let bgIconClass = 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30';
+      let iconName = 'info';
+      let defaultTitle = 'Informasi';
+      let barColor = 'bg-indigo-500';
+
+      if (type === 'error') {
+        borderClass = 'border-rose-500/50 shadow-rose-950/40';
+        bgIconClass = 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+        iconName = 'alert-circle';
+        defaultTitle = 'Login Gagal';
+        barColor = 'bg-rose-500';
+      } else if (type === 'success') {
+        borderClass = 'border-emerald-500/40 shadow-emerald-950/20';
+        bgIconClass = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+        iconName = 'check-circle-2';
+        defaultTitle = 'Berhasil';
+        barColor = 'bg-emerald-500';
+      } else if (type === 'warning') {
+        borderClass = 'border-amber-500/40 shadow-amber-950/20';
+        bgIconClass = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+        iconName = 'alert-triangle';
+        defaultTitle = 'Peringatan';
+        barColor = 'bg-amber-500';
+      }
+
+      const finalTitle = title || defaultTitle;
+
+      toast.className = `relative overflow-hidden pointer-events-auto w-full bg-slate-900/95 backdrop-blur-xl border ${borderClass} rounded-2xl p-4 shadow-2xl transition-all duration-300 toast-enter flex items-start space-x-3.5`;
+      
+      toast.innerHTML = `
+        <div class="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${bgIconClass}">
+          <i data-lucide="${iconName}" class="w-4 h-4"></i>
+        </div>
+        <div class="flex-1 min-w-0 pt-0.5">
+          <p class="font-bold text-xs text-white tracking-wide">${finalTitle}</p>
+          <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed break-words">${message}</p>
+        </div>
+        <button type="button" class="shrink-0 p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors" onclick="dismissToast(this.closest('.toast-enter, .relative'))">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-slate-800/50">
+          <div class="h-full ${barColor} transition-all ease-linear" style="width: 100%; transition-duration: ${duration}ms;"></div>
+        </div>
+      `;
+
+      container.appendChild(toast);
+      safeLucide();
+
+      const progressBar = toast.querySelector('.absolute .h-full');
+      requestAnimationFrame(() => {
+        if (progressBar) progressBar.style.width = '0%';
+      });
+
+      const timer = setTimeout(() => {
+        dismissToast(toast);
+      }, duration);
+
+      toast._timer = timer;
+    }
+
+    function dismissToast(el) {
+      if (!el || el._isClosing) return;
+      el._isClosing = true;
+      if (el._timer) clearTimeout(el._timer);
+      el.classList.remove('toast-enter');
+      el.classList.add('toast-exit');
+      setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 250);
+    }
+
+    async function handleLogin(e) {
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+      }
+      const card = document.getElementById('login-card');
+      const errBox = document.getElementById('login-error-box');
+      const errTxt = document.getElementById('login-error-msg');
+      const submitBtn = document.getElementById('btn-login-submit');
+      const uInput = document.getElementById('login-username');
+      const pInput = document.getElementById('login-password');
+      
+      if (errBox) {
+        errBox.classList.add('hidden');
+        errBox.style.display = 'none';
+      }
+      if (card) card.classList.remove('animate-shake');
+      if (uInput) uInput.classList.remove('border-rose-500', 'focus:border-rose-500');
+      if (pInput) pInput.classList.remove('border-rose-500', 'focus:border-rose-500');
+      
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-70');
+      }
+
+      const username = uInput ? uInput.value.trim() : '';
+      const password = pInput ? pInput.value : '';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (data.token) {
+            localStorage.setItem('arusuka_token', data.token);
+          }
+          showToast('Login berhasil! Mengalihkan ke dashboard...', 'success', 'Selamat Datang');
+          showDashboardView();
+        } else {
+          const errorMsg = data.detail || 'Username atau password yang kamu masukkan salah.';
+          if (errTxt) errTxt.innerText = errorMsg;
+          if (errBox) {
+            errBox.classList.remove('hidden');
+            errBox.style.display = 'flex';
+          }
+          
+          if (uInput) uInput.classList.add('border-rose-500', 'focus:border-rose-500');
+          if (pInput) {
+            pInput.classList.add('border-rose-500', 'focus:border-rose-500');
+            pInput.value = '';
+            pInput.focus();
+          }
+          
+          if (card) {
+            void card.offsetWidth;
+            card.classList.add('animate-shake');
+          }
+          showToast(errorMsg, 'error', 'Login Gagal', 5000);
+          safeLucide();
+        }
+      } catch (err) {
+        const errorMsg = 'Gagal menghubungi server. Periksa koneksi jaringan.';
+        if (errTxt) errTxt.innerText = errorMsg;
+        if (errBox) {
+          errBox.classList.remove('hidden');
+          errBox.style.display = 'flex';
+        }
+        if (card) {
+          void card.offsetWidth;
+          card.classList.add('animate-shake');
+        }
+        showToast(errorMsg, 'error', 'Koneksi Error', 5000);
+        safeLucide();
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-70');
+        }
+      }
+    }
+
+    async function handleLogout() {
+      if (!confirm('Apakah kamu yakin ingin logout dari dashboard?')) return;
+      localStorage.removeItem('arusuka_token');
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (err) {}
+      showLoginView();
+    }
+
+    // Change Password Modal
+    function openChangePasswordModal() {
+      document.getElementById('form-change-password').reset();
+      document.getElementById('pwd-error-box').classList.add('hidden');
+      document.getElementById('pwd-success-box').classList.add('hidden');
+      document.getElementById('modal-change-password').classList.remove('hidden');
+    }
+    function closeChangePasswordModal() {
+      document.getElementById('modal-change-password').classList.add('hidden');
+    }
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('pwd-error-box');
+      const sucBox = document.getElementById('pwd-success-box');
+      errBox.classList.add('hidden');
+      sucBox.classList.add('hidden');
+
+      const old_password = document.getElementById('pwd-old').value;
+      const new_password = document.getElementById('pwd-new').value;
+      const confirm_pwd = document.getElementById('pwd-confirm').value;
+
+      if (new_password !== confirm_pwd) {
+        errBox.innerText = 'Konfirmasi password baru tidak cocok.';
+        errBox.classList.remove('hidden');
+        showToast('Konfirmasi password baru tidak cocok.', 'error', 'Validasi Gagal');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ old_password, new_password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          sucBox.innerText = 'Password berhasil diubah! Mengalihkan ke login...';
+          sucBox.classList.remove('hidden');
+          showToast('Password berhasil diperbarui. Silakan login kembali.', 'success', 'Berhasil Diubah');
+          setTimeout(() => {
+            closeChangePasswordModal();
+            showLoginView();
+          }, 1500);
+        } else {
+          const errMsg = data.detail || 'Gagal mengubah password.';
+          errBox.innerText = errMsg;
+          errBox.classList.remove('hidden');
+          showToast(errMsg, 'error', 'Gagal Mengubah Password');
+        }
+      } catch (err) {
+        errBox.innerText = 'Terjadi kesalahan sistem.';
+        errBox.classList.remove('hidden');
+        showToast('Terjadi kesalahan jaringan/sistem.', 'error', 'Error');
+      }
+    }
+
+    // Tab Switcher
+    function switchTab(tab, pushToHistory = true) {
+      if (tab === currentTab) return;
+      
+      if (pushToHistory) {
+        window.history.pushState({ tab: tab }, '', '#' + tab);
+      }
+
+      currentTab = tab;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeEl = document.getElementById('tab-content-' + tab);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      // Desktop Nav Styling
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-white', 'bg-indigo-600', 'shadow-sm', 'shadow-indigo-500/20');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('nav-' + tab);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400');
+        activeBtn.classList.add('text-white', 'bg-indigo-600', 'shadow-sm', 'shadow-indigo-500/20');
+      }
+
+      // Mobile Nav Styling
+      ['overview', 'tasks', 'jobs', 'brain', 'system'].forEach(t => {
+        const mBtn = document.getElementById('m-nav-' + t);
+        if (mBtn) {
+          if (t === tab) {
+            mBtn.classList.remove('text-slate-500');
+            mBtn.classList.add('text-indigo-400', 'font-bold');
+          } else {
+            mBtn.classList.remove('text-indigo-400', 'font-bold');
+            mBtn.classList.add('text-slate-500');
+          }
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      safeLucide();
+    }
+
+    // Handle Browser Popstate
+    window.addEventListener('popstate', (event) => {
+      if (!isAuthenticated) return;
+      const tab = event.state && event.state.tab ? event.state.tab : (window.location.hash.replace('#', '') || 'overview');
+      switchTab(tab, false);
+    });
+
+    // Fetch All Data
+    async function refreshAllData(animate = false) {
+      if (!isAuthenticated) return;
+      const icon = document.getElementById('refresh-icon');
+      if (animate && icon) icon.classList.add('animate-spin');
+
+      try {
+        await Promise.all([
+          loadOverview(),
+          loadTasks(),
+          loadJobs(),
+          loadBrain(),
+          loadWeatherDetail(),
+          loadSchedules(),
+          loadZeppData()
+        ]);
+      } catch (err) {
+        console.error('Error refreshing dashboard:', err);
+      } finally {
+        if (icon) {
+          setTimeout(() => icon.classList.remove('animate-spin'), 400);
+        }
+        safeLucide();
+      }
+    }
+
+    // Helper for Auth Fetch Handling
+    async function authFetch(url, options = {}) {
+      const token = localStorage.getItem('arusuka_token');
+      const headers = Object.assign({}, options.headers || {});
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const fetchOptions = Object.assign({}, options, { headers });
+      const res = await fetch(url, fetchOptions);
+      if (res.status === 401) {
+        localStorage.removeItem('arusuka_token');
+        showLoginView();
+        throw new Error('Unauthorized');
+      }
+      return res;
+    }
+
+    // 1. Overview API
+    async function loadOverview() {
+      const res = await authFetch('/api/overview');
+      const data = await res.json();
+      globalOverview = data;
+
+      // Personal Tasks Stat
+      if (data.tasks) {
+        document.getElementById('stat-task-active').innerText = data.tasks.total_active;
+        document.getElementById('stat-task-in-progress').innerText = data.tasks.in_progress + ' Sedang Jalan';
+        document.getElementById('stat-task-urgent').innerText = data.tasks.urgent + ' Urgent';
+      }
+
+      // Stats
+      document.getElementById('stat-sys-cpu').innerText = 'CPU ' + data.system.cpu_percent + '%';
+      document.getElementById('stat-sys-ram').innerText = data.system.ram_percent + '%';
+      document.getElementById('stat-sys-uptime').innerText = data.system.uptime;
+      
+      document.getElementById('stat-job-active').innerText = data.jobs.total_active;
+      document.getElementById('stat-job-interview').innerText = data.jobs.interview + ' Interview';
+
+      document.getElementById('stat-brain-notes').innerText = data.second_brain.total_notes + ' Catatan';
+      document.getElementById('stat-graph-entities').innerText = data.second_brain.graph_entities + ' entitas graph';
+
+      document.getElementById('stat-weather-temp').innerText = (data.weather.temp_c || '--') + ' °C';
+      document.getElementById('stat-weather-icon').innerText = data.weather.icon || '🌤️';
+      document.getElementById('stat-weather-aqi').innerText = 'AQI ' + data.weather.aqi + ' • ' + data.weather.aqi_icon;
+
+      // System Bars
+      document.getElementById('sys-uptime').innerText = 'Uptime: ' + data.system.uptime;
+      document.getElementById('sys-cpu-val').innerText = data.system.cpu_percent + '%';
+      document.getElementById('sys-cpu-bar').style.width = Math.min(data.system.cpu_percent, 100) + '%';
+
+      document.getElementById('sys-ram-val').innerText = data.system.ram_percent + '%';
+      document.getElementById('sys-ram-bar').style.width = Math.min(data.system.ram_percent, 100) + '%';
+      document.getElementById('sys-ram-detail').innerText = data.system.ram_used_gb + ' GB / ' + data.system.ram_total_gb + ' GB';
+
+      document.getElementById('sys-disk-val').innerText = data.system.disk_percent + '%';
+      document.getElementById('sys-disk-bar').style.width = Math.min(data.system.disk_percent, 100) + '%';
+      document.getElementById('sys-disk-detail').innerText = 'Sisa ' + data.system.disk_free_gb + ' GB';
+
+      document.getElementById('sys-pokemon-badge').innerText = data.pokemon_queue + ' antrean';
+
+      // Weather snippet
+      document.getElementById('weather-temp').innerText = data.weather.temp_c || '--';
+      document.getElementById('weather-desc').innerText = data.weather.condition || 'Cerah';
+      document.getElementById('weather-icon').innerText = data.weather.icon || '🌤️';
+      document.getElementById('weather-aqi-badge').innerText = 'AQI ' + data.weather.aqi + ' • ' + data.weather.aqi_icon;
+    }
+
+    // 2. Personal Task Kanban API
+    async function loadTasks() {
+      const res = await authFetch('/api/tasks');
+      const data = await res.json();
+      globalTasks = data;
+
+      document.getElementById('task-active-badge').innerText = data.stats.active + ' Aktif';
+
+      // Render Category Filter Pills
+      const catContainer = document.getElementById('task-category-pills');
+      const allCats = ['all', ...(data.categories || [])];
+      catContainer.innerHTML = allCats.map(cat => {
+        const isSelected = activeTaskCategory === cat;
+        const label = cat === 'all' ? '✨ Semua Kategori' : cat;
+        return `
+          <button onclick="setTaskCategory('${cat}')" class="px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all ${isSelected ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'}">
+            ${label}
+          </button>
+        `;
+      }).join('');
+
+      renderTaskKanban(data.columns);
+    }
+
+    function setTaskCategory(cat) {
+      activeTaskCategory = cat;
+      filterTasks();
+    }
+
+    function setMobileTaskCol(col) {
+      activeMobileTaskCol = col;
+      filterTasks();
+    }
+
+    function filterTasks() {
+      if (!globalTasks) return;
+      const q = document.getElementById('task-search-input').value.toLowerCase();
+      const priorityFilter = document.getElementById('task-priority-filter').value;
+      
+      const filtered = {};
+      for (const [k, list] of Object.entries(globalTasks.columns)) {
+        filtered[k] = list.filter(t => {
+          const matchQ = !q || t.title.toLowerCase().includes(q) || (t.description && t.description.toLowerCase().includes(q)) || (t.category && t.category.toLowerCase().includes(q));
+          const matchCat = activeTaskCategory === 'all' || (t.category && t.category.toLowerCase() === activeTaskCategory.toLowerCase());
+          const matchPriority = priorityFilter === 'all' || (t.priority && t.priority.toLowerCase() === priorityFilter.toLowerCase());
+          return matchQ && matchCat && matchPriority;
+        });
+      }
+      renderTaskKanban(filtered);
+    }
+
+    function renderTaskKanban(columns) {
+      const container = document.getElementById('task-kanban-container');
+      const mobileTabs = document.getElementById('mobile-task-tabs');
+      const colKeys = ['backlog', 'todo', 'in_progress', 'review', 'done'];
+
+      // Destroy previous sortable instances
+      taskSortables.forEach(s => s.destroy());
+      taskSortables = [];
+
+      // Mobile column selector
+      mobileTabs.innerHTML = colKeys.map(key => {
+        const info = TASK_COLUMNS[key];
+        const count = columns[key] ? columns[key].length : 0;
+        const isActive = activeMobileTaskCol === key;
+        return `
+          <button onclick="setMobileTaskCol('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${isActive ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/20' : 'bg-slate-950 text-slate-400 border border-slate-800'}">
+            ${info.label} (${count})
+          </button>
+        `;
+      }).join('');
+
+      // Desktop & Mobile Columns Render
+      container.innerHTML = colKeys.map(key => {
+        const info = TASK_COLUMNS[key];
+        const tasks = columns[key] || [];
+        const isMobileHidden = window.innerWidth < 768 && activeMobileTaskCol !== key ? 'hidden md:block' : '';
+
+        return `
+          <div class="bg-slate-900/70 rounded-2xl p-3 border border-slate-800/80 flex flex-col min-h-[460px] ${isMobileHidden}">
+            <!-- Column Header -->
+            <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800">
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="${info.icon}" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span class="font-bold text-xs text-slate-200">${info.label}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${tasks.length}</span>
+            </div>
+
+            <!-- Task Cards Dropzone (Sortable Container) -->
+            <div id="task-dropzone-${key}" data-status="${key}" class="task-dropzone kanban-dropzone space-y-2.5 flex-1 p-0.5 custom-scrollbar">
+              ${tasks.map(t => {
+                const prio = PRIORITY_BADGES[t.priority] || PRIORITY_BADGES['medium'];
+                const isDone = t.status === 'done';
+
+                return `
+                  <div data-id="${t.id}" data-status="${t.status}" class="task-card bg-slate-900 rounded-xl p-3.5 border border-slate-800 shadow-sm hover:border-slate-700 hover:shadow-md transition-all space-y-2 cursor-grab active:cursor-grabbing select-none group">
+                    <!-- Top Badges & Drag Grip -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-1.5">
+                        <i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 transition-colors"></i>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-950 text-indigo-300 border border-slate-800">${t.category || 'Personal'}</span>
+                      </div>
+                      <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${prio.badge}">
+                        ${prio.icon} ${prio.label}
+                      </span>
+                    </div>
+
+                    <!-- Title & Desc -->
+                    <div>
+                      <h4 class="font-bold text-xs ${isDone ? 'line-through text-slate-400' : 'text-white'} leading-snug">${t.title}</h4>
+                      ${t.description ? `<p class="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">${t.description}</p>` : ''}
+                    </div>
+
+                    <!-- Due Date if available -->
+                    ${t.due_date ? `
+                      <div class="flex items-center space-x-1 text-[10px] font-semibold text-slate-400">
+                        <i data-lucide="calendar" class="w-3 h-3 text-slate-500"></i>
+                        <span>Due: ${t.due_date}</span>
+                      </div>
+                    ` : ''}
+
+                    <!-- Action Bar -->
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                      <!-- Status changer (alternative to drag) -->
+                      <select onchange="changeTaskStatus(${t.id}, this.value)" class="text-[10px] font-semibold p-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 focus:outline-hidden">
+                        ${Object.keys(TASK_COLUMNS).map(k => `
+                          <option value="${k}" ${t.status === k ? 'selected' : ''}>→ ${TASK_COLUMNS[k].label}</option>
+                        `).join('')}
+                      </select>
+
+                      <div class="flex items-center space-x-1">
+                        ${!isDone ? `
+                          <button onclick="quickMarkTaskDone(${t.id})" class="p-1 text-slate-400 hover:text-emerald-400 rounded-md transition-colors" title="Tandai Selesai">
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                          </button>
+                        ` : ''}
+                        <button onclick="openEditTaskModal(${t.id})" class="p-1 text-slate-400 hover:text-indigo-400 rounded-md transition-colors" title="Edit Task">
+                          <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deleteTask(${t.id})" class="p-1 text-slate-500 hover:text-rose-400 rounded-md transition-colors" title="Hapus">
+                          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Initialize SortableJS for all 5 Task columns
+      colKeys.forEach(key => {
+        const el = document.getElementById('task-dropzone-' + key);
+        if (el && window.Sortable) {
+          const s = new Sortable(el, {
+            group: 'personal-tasks-kanban',
+            animation: 180,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            handle: '.task-card',
+            fallbackTolerance: 3,
+            onEnd: async function(evt) {
+              const targetCol = evt.to.getAttribute('data-status');
+              const sourceCol = evt.from.getAttribute('data-status');
+              const taskId = evt.item.getAttribute('data-id');
+
+              if (targetCol && taskId && targetCol !== sourceCol) {
+                try {
+                  await authFetch('/api/tasks/' + taskId, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: targetCol })
+                  });
+                  await loadTasks();
+                  await loadOverview();
+                } catch (err) {
+                  console.error('Error moving task:', err);
+                }
+              }
+            }
+          });
+          taskSortables.push(s);
+        }
+      });
+
+      safeLucide();
+    }
+
+    async function changeTaskStatus(taskId, newStatus) {
+      await authFetch('/api/tasks/' + taskId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      await loadTasks();
+      await loadOverview();
+    }
+
+    async function quickMarkTaskDone(taskId) {
+      await changeTaskStatus(taskId, 'done');
+    }
+
+    async function deleteTask(taskId) {
+      if (!confirm('Hapus tugas ini?')) return;
+      await authFetch('/api/tasks/' + taskId, { method: 'DELETE' });
+      await loadTasks();
+      await loadOverview();
+    }
+
+    // 3. Job Hunter Kanban API
+    async function loadJobs() {
+      const res = await authFetch('/api/jobs');
+      const data = await res.json();
+      globalJobs = data;
+      renderKanban(data.columns);
+    }
+
+    function renderKanban(columns) {
+      const container = document.getElementById('kanban-container');
+      const mobileTabs = document.getElementById('mobile-kanban-tabs');
+      const colKeys = ['wishlist', 'applied', 'screening', 'tech_test', 'interview', 'offering'];
+
+      // Destroy previous sortable instances
+      jobSortables.forEach(s => s.destroy());
+      jobSortables = [];
+
+      // Mobile Tab Selector
+      mobileTabs.innerHTML = colKeys.map(key => {
+        const info = STATUS_LABELS[key];
+        const count = columns[key] ? columns[key].length : 0;
+        const isActive = activeMobileKanbanCol === key;
+        return `
+          <button onclick="setMobileKanbanCol('${key}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all ${isActive ? 'bg-sky-600 text-white shadow-sm shadow-sky-500/20' : 'bg-slate-900 text-slate-400 border border-slate-800'}">
+            ${info.label} (${count})
+          </button>
+        `;
+      }).join('');
+
+      // Desktop & Mobile Columns Render
+      container.innerHTML = colKeys.map(key => {
+        const info = STATUS_LABELS[key];
+        const jobs = columns[key] || [];
+        const isMobileHidden = window.innerWidth < 768 && activeMobileKanbanCol !== key ? 'hidden md:block' : '';
+
+        return `
+          <div class="bg-slate-900/60 rounded-2xl p-3 border border-slate-800/80 flex flex-col min-h-[460px] ${isMobileHidden}">
+            <!-- Column Header -->
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+              <span class="font-bold text-xs text-slate-200">${info.label}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">${jobs.length}</span>
+            </div>
+
+            <!-- Cards Dropzone (Sortable Container) -->
+            <div id="job-dropzone-${key}" data-status="${key}" class="job-dropzone kanban-dropzone space-y-2.5 flex-1 p-0.5 custom-scrollbar">
+              ${jobs.map(j => `
+                <div data-id="${j.id}" data-status="${j.status}" class="job-card bg-slate-900 rounded-xl p-3.5 border border-slate-800 shadow-sm hover:border-slate-700 hover:shadow-md transition-all space-y-2 cursor-grab active:cursor-grabbing select-none group">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-1.5">
+                      <i data-lucide="grip-vertical" class="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 transition-colors mt-0.5"></i>
+                      <div>
+                        <h4 class="font-bold text-white text-xs">${j.company}</h4>
+                        <p class="text-[11px] text-slate-300 font-medium">${j.role}</p>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-semibold text-slate-500">${j.location}</span>
+                  </div>
+
+                  ${j.next_schedule ? `
+                    <div class="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-300 flex items-center space-x-1">
+                      <i data-lucide="calendar" class="w-3 h-3"></i>
+                      <span class="truncate">${j.next_schedule}</span>
+                    </div>
+                  ` : ''}
+
+                  ${j.notes ? `
+                    <p class="text-[10px] text-slate-400 line-clamp-2 italic">${j.notes}</p>
+                  ` : ''}
+
+                  <!-- Action Buttons -->
+                  <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <select onchange="changeJobStatus(${j.id}, this.value)" class="text-[10px] font-semibold p-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 focus:outline-hidden">
+                      ${Object.keys(STATUS_LABELS).map(k => `
+                        <option value="${k}" ${j.status === k ? 'selected' : ''}>→ ${STATUS_LABELS[k].label}</option>
+                      `).join('')}
+                    </select>
+                    <button onclick="deleteJob(${j.id})" class="p-1 text-slate-500 hover:text-rose-400 rounded-md transition-colors" title="Hapus">
+                      <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Initialize SortableJS for Career Kanban
+      colKeys.forEach(key => {
+        const el = document.getElementById('job-dropzone-' + key);
+        if (el && window.Sortable) {
+          const s = new Sortable(el, {
+            group: 'career-jobs-kanban',
+            animation: 180,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            handle: '.job-card',
+            fallbackTolerance: 3,
+            onEnd: async function(evt) {
+              const targetCol = evt.to.getAttribute('data-status');
+              const sourceCol = evt.from.getAttribute('data-status');
+              const jobId = evt.item.getAttribute('data-id');
+
+              if (targetCol && jobId && targetCol !== sourceCol) {
+                try {
+                  await authFetch('/api/jobs/' + jobId + '/status', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: targetCol })
+                  });
+                  await loadJobs();
+                  await loadOverview();
+                } catch (err) {
+                  console.error('Error moving job application:', err);
+                }
+              }
+            }
+          });
+          jobSortables.push(s);
+        }
+      });
+
+      safeLucide();
+    }
+
+    function setMobileKanbanCol(col) {
+      activeMobileKanbanCol = col;
+      if (globalJobs) renderKanban(globalJobs.columns);
+    }
+
+    function filterJobs() {
+      const q = document.getElementById('job-search-input').value.toLowerCase();
+      if (!globalJobs) return;
+      const filtered = {};
+      for (const [k, list] of Object.entries(globalJobs.columns)) {
+        filtered[k] = list.filter(j => 
+          j.company.toLowerCase().includes(q) ||
+          j.role.toLowerCase().includes(q) ||
+          j.notes.toLowerCase().includes(q)
+        );
+      }
+      renderKanban(filtered);
+    }
+
+    async function changeJobStatus(jobId, newStatus) {
+      await authFetch('/api/jobs/' + jobId + '/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      await loadJobs();
+      await loadOverview();
+    }
+
+    async function deleteJob(jobId) {
+      if (!confirm('Hapus lamaran ini?')) return;
+      await authFetch('/api/jobs/' + jobId, { method: 'DELETE' });
+      await loadJobs();
+      await loadOverview();
+    }
+
+    // 4. Second Brain API
+    async function loadBrain() {
+      const res = await authFetch('/api/second-brain');
+      const data = await res.json();
+      globalBrain = data;
+
+      document.getElementById('brain-graph-entities-val').innerText = data.graph.entities_count;
+      document.getElementById('brain-graph-relations-val').innerText = data.graph.relations_count;
+      document.getElementById('brain-inbox-count-val').innerText = data.notes.filter(n => n.folder === 'Inbox').length;
+      document.getElementById('brain-note-count').innerText = data.total_notes + ' Catatan';
+
+      renderBrainNotes(data.notes);
+      renderOverviewNotes(data.notes.slice(0, 6));
+    }
+
+    function renderBrainNotes(notes) {
+      const container = document.getElementById('brain-notes-grid');
+      container.innerHTML = notes.map(n => `
+        <div class="bg-slate-900 rounded-xl p-4 border border-slate-800 shadow-sm hover:border-slate-700 transition-all space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${n.folder === 'Inbox' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}">${n.folder}</span>
+            <span class="text-[10px] text-slate-500 font-mono">${n.modified_at}</span>
+          </div>
+          <h4 class="font-bold text-white text-xs sm:text-sm tracking-tight">${n.title}</h4>
+          <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">${n.preview || 'Tidak ada deskripsi teks.'}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderOverviewNotes(notes) {
+      const container = document.getElementById('overview-recent-notes');
+      container.innerHTML = notes.map(n => `
+        <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80 hover:bg-slate-900 transition-all space-y-1.5">
+          <div class="flex items-center justify-between text-[10px]">
+            <span class="font-bold text-indigo-400">${n.folder}</span>
+            <span class="text-slate-500 font-mono">${n.modified_at.split(' ')[0]}</span>
+          </div>
+          <h4 class="font-bold text-slate-200 text-xs truncate">${n.title}</h4>
+          <p class="text-[10px] text-slate-400 line-clamp-2 leading-tight">${n.preview || ''}</p>
+        </div>
+      `).join('');
+    }
+
+    function searchBrainNotes() {
+      const q = document.getElementById('brain-search-input').value.toLowerCase();
+      if (!globalBrain) return;
+      const filtered = globalBrain.notes.filter(n => n.title.toLowerCase().includes(q) || n.preview.toLowerCase().includes(q));
+      renderBrainNotes(filtered);
+    }
+
+    // 5. Weather & BMKG Detail API
+    async function loadWeatherDetail() {
+      const res = await authFetch('/api/weather');
+      const data = await res.json();
+      
+      // Weather detail
+      if (data.weather && data.weather.weather) {
+        const w = data.weather.weather;
+        const aq = data.weather.air_quality;
+        document.getElementById('weather-detail-icon').innerText = w.icon;
+        document.getElementById('wd-temp').innerText = w.temperature_c + ' °C';
+        document.getElementById('wd-feels').innerText = 'Terasa seperti ' + w.feels_like_c + ' °C';
+        document.getElementById('wd-humidity').innerText = w.humidity_percent + ' %';
+        document.getElementById('wd-wind').innerText = w.wind_speed_kmh + ' km/j';
+        document.getElementById('wd-rain').innerText = w.rain_probability_percent + ' %';
+
+        document.getElementById('wd-aqi-icon').innerText = aq.icon;
+        document.getElementById('wd-aqi-title').innerText = 'Kualitas Udara: ' + aq.category + ' (AQI ' + aq.us_aqi + ')';
+        document.getElementById('wd-aqi-advice').innerText = aq.health_advice;
+      }
+
+      // BMKG Earthquake detail
+      if (data.earthquake && data.earthquake.magnitude) {
+        const g = data.earthquake;
+        document.getElementById('bmkg-mag').innerText = 'M ' + g.magnitude;
+        document.getElementById('bmkg-location').innerText = g.wilayah;
+        document.getElementById('bmkg-potential').innerText = g.potensi;
+        
+        const distText = g.distance_to_surabaya_km ? g.distance_to_surabaya_km + ' km SBY' : '-- km SBY';
+        const distDetailText = g.distance_to_surabaya_km ? g.distance_to_surabaya_km + ' km dari Surabaya' : 'Jarak tidak diketahui';
+        
+        const distBadge = document.getElementById('bmkg-dist-badge');
+        if (distBadge) distBadge.innerText = distText;
+
+        document.getElementById('bmkg-detail-mag').innerText = 'M ' + g.magnitude;
+        const detailDistBadge = document.getElementById('bmkg-detail-dist');
+        if (detailDistBadge) detailDistBadge.innerText = distDetailText;
+
+        document.getElementById('bmkg-time').innerText = g.tanggal + ' - ' + g.jam;
+        document.getElementById('bmkg-wilayah').innerText = g.wilayah;
+        document.getElementById('bmkg-depth').innerText = g.kedalaman;
+        document.getElementById('bmkg-coords').innerText = g.coordinates;
+        document.getElementById('bmkg-potensi-detail').innerText = g.potensi;
+        const dirasakanEl = document.getElementById('bmkg-dirasakan');
+        if (dirasakanEl) dirasakanEl.innerText = g.dirasakan || 'Belum ada laporan dirasakan';
+
+        if (g.shakemap_url) {
+          document.getElementById('bmkg-shakemap-link').href = g.shakemap_url;
+        }
+      }
+
+      // BMKG Recent 5 Earthquakes List
+      const recentListContainer = document.getElementById('bmkg-recent-list');
+      if (recentListContainer && Array.isArray(data.recent_earthquakes) && data.recent_earthquakes.length > 0) {
+        recentListContainer.innerHTML = data.recent_earthquakes.map((item, idx) => {
+          const distStr = item.distance_to_surabaya_km ? `${item.distance_to_surabaya_km} km dari Surabaya` : 'Jarak -';
+          const magNum = parseFloat(item.magnitude) || 0;
+          const magColor = magNum >= 5.0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
+                           magNum >= 3.5 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                           'bg-slate-800 text-slate-300 border-slate-700';
+
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-all hover:border-slate-700">
+              <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                  <span class="px-2 py-0.5 rounded-md font-bold text-xs border ${magColor}">M ${item.magnitude}</span>
+                  <span class="font-bold text-slate-200">${item.wilayah}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 flex flex-wrap gap-x-3 gap-y-1">
+                  <span>🕒 ${item.tanggal} - ${item.jam}</span>
+                  <span>📏 Kedalaman: ${item.kedalaman}</span>
+                  <span class="text-indigo-400 font-medium">📍 ${distStr}</span>
+                </div>
+                ${item.dirasakan ? `<div class="text-[10px] text-slate-500 italic mt-0.5">Dirasakan: ${item.dirasakan}</div>` : ''}
+              </div>
+              <div class="sm:text-right shrink-0">
+                <span class="inline-block px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-900 text-slate-300 border border-slate-800">
+                  ${item.potensi || 'Gempa Dirasakan'}
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        safeLucide();
+      }
+    }
+
+    // 6. Active Schedules & Cron Jobs API
+    async function loadSchedules() {
+      try {
+        const res = await authFetch('/api/schedules');
+        const data = await res.json();
+        
+        const countBadge = document.getElementById('schedules-count-badge');
+        if (countBadge && data.total !== undefined) {
+          countBadge.innerText = `${data.total} Aktif`;
+        }
+
+        const listContainer = document.getElementById('schedules-list');
+        if (!listContainer) return;
+
+        if (!data.schedules || data.schedules.length === 0) {
+          listContainer.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">Tidak ada jadwal cron aktif.</div>';
+          return;
+        }
+
+        const colorMap = {
+          rose: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+          indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+          amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+          purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+          emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+          slate: 'bg-slate-800 text-slate-300 border-slate-700'
+        };
+
+        listContainer.innerHTML = data.schedules.map(item => {
+          const colorClass = colorMap[item.badge_color] || colorMap.indigo;
+          
+          return `
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2.5 transition-all hover:border-slate-700">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center shrink-0">
+                    <i data-lucide="${item.icon}" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                      <span>${item.name}</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-mono border ${colorClass}">${item.cron_expr}</span>
+                    </h4>
+                    <p class="text-[11px] text-slate-400 font-medium">${item.type} • <span class="text-indigo-300">${item.category}</span></p>
+                  </div>
+                </div>
+
+                <div class="flex items-center space-x-2 self-start sm:self-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
+                    ${item.schedule}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Description & Target -->
+              <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/50">
+                ${item.description}
+              </p>
+
+              <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-0.5">
+                <span>🎯 Target: <strong class="text-slate-300 font-normal">${item.target}</strong></span>
+                <span>⏱️ Next Run: <strong class="text-slate-400 font-normal">${item.next_run}</strong></span>
+              </div>
+            </div>
+          `;
+        }).join('');
+        safeLucide();
+      } catch (err) {
+        console.error('Error loading schedules:', err);
+      }
+    // 7. Zepp Amazfit Fitness & Sleep API
+    async function loadZeppData() {
+      try {
+        const res = await authFetch('/api/zepp');
+        const data = await res.json();
+        
+        if (data.status === 'error' || data.status === 'unconfigured') {
+          const statusBadge = document.getElementById('zepp-full-status');
+          if (statusBadge) statusBadge.innerText = '⚠️ Offline / Relogin';
+          return;
+        }
+
+        const t = data.today || {};
+        const last_sleep = data.last_sleep || {};
+
+        // Overview Widget
+        const stepsTodayEl = document.getElementById('zepp-steps-today');
+        if (stepsTodayEl) stepsTodayEl.innerText = (t.steps || 0).toLocaleString('id-ID');
+
+        const goalStepsEl = document.getElementById('zepp-goal-steps');
+        if (goalStepsEl) goalStepsEl.innerText = (t.goal || 8000).toLocaleString('id-ID');
+
+        const stepPercentEl = document.getElementById('zepp-step-percent');
+        if (stepPercentEl) stepPercentEl.innerText = `${t.goal_percent || 0}%`;
+
+        const progressBarEl = document.getElementById('zepp-progress-bar');
+        if (progressBarEl) progressBarEl.style.width = `${Math.min(100, t.goal_percent || 0)}%`;
+
+        const distanceEl = document.getElementById('zepp-distance');
+        if (distanceEl) distanceEl.innerText = (t.distance_km || 0).toFixed(2);
+
+        const caloriesEl = document.getElementById('zepp-calories');
+        if (caloriesEl) caloriesEl.innerText = t.calories_kcal || 0;
+
+        const sleepDurEl = document.getElementById('zepp-sleep-duration');
+        if (sleepDurEl) sleepDurEl.innerText = last_sleep.sleep_hours || '--';
+
+        const sleepSubEl = document.getElementById('zepp-sleep-sub');
+        if (sleepSubEl) {
+          if (last_sleep.date) {
+            sleepSubEl.innerText = `Deep: ${last_sleep.deep_sleep_mins || 0}m | REM: ${last_sleep.rem_mins || 0}m (${last_sleep.date})`;
+          } else {
+            sleepSubEl.innerText = 'Belum ada rekaman tidur';
+          }
+        }
+
+        // Tab 5 Detail Section
+        const dtDateEl = document.getElementById('zepp-detail-date');
+        if (dtDateEl) dtDateEl.innerText = t.date || '--';
+
+        const dtStepsEl = document.getElementById('zepp-detail-steps');
+        if (dtStepsEl) dtStepsEl.innerText = (t.steps || 0).toLocaleString('id-ID');
+
+        const dtGoalEl = document.getElementById('zepp-detail-goal');
+        if (dtGoalEl) dtGoalEl.innerText = (t.goal || 8000).toLocaleString('id-ID');
+
+        const dtPercentEl = document.getElementById('zepp-detail-percent');
+        if (dtPercentEl) dtPercentEl.innerText = `${t.goal_percent || 0}% dari Target`;
+
+        const dtProgressBarEl = document.getElementById('zepp-detail-progress-bar');
+        if (dtProgressBarEl) dtProgressBarEl.style.width = `${Math.min(100, t.goal_percent || 0)}%`;
+
+        const dtDistEl = document.getElementById('zepp-detail-distance');
+        if (dtDistEl) dtDistEl.innerText = `${(t.distance_km || 0).toFixed(2)} km`;
+
+        const dtCalEl = document.getElementById('zepp-detail-calories');
+        if (dtCalEl) dtCalEl.innerText = `${t.calories_kcal || 0} kcal`;
+
+        const dtActiveEl = document.getElementById('zepp-detail-active-time');
+        if (dtActiveEl) dtActiveEl.innerText = `${t.active_mins || 0} m`;
+
+        // Sleep Detail
+        const slpDateEl = document.getElementById('zepp-sleep-date');
+        if (slpDateEl) slpDateEl.innerText = last_sleep.date || '--';
+
+        const slpTotalBadge = document.getElementById('zepp-sleep-total-badge');
+        if (slpTotalBadge) slpTotalBadge.innerText = last_sleep.sleep_hours ? `${last_sleep.sleep_hours} Total` : '-- Total';
+
+        const deepEl = document.getElementById('zepp-deep-sleep');
+        if (deepEl) deepEl.innerText = `${last_sleep.deep_sleep_mins || 0}m`;
+
+        const lightEl = document.getElementById('zepp-light-sleep');
+        if (lightEl) lightEl.innerText = `${last_sleep.light_sleep_mins || 0}m`;
+
+        const remEl = document.getElementById('zepp-rem-sleep');
+        if (remEl) remEl.innerText = `${last_sleep.rem_mins || 0}m`;
+
+        const awakeEl = document.getElementById('zepp-awake-sleep');
+        if (awakeEl) awakeEl.innerText = `${last_sleep.awake_mins || 0}m`;
+
+        // Render 7-day mini bar chart
+        const historyContainer = document.getElementById('zepp-history-bars');
+        if (historyContainer && Array.isArray(data.history_7days) && data.history_7days.length > 0) {
+          const maxSteps = Math.max(8000, ...data.history_7days.map(d => d.steps || 0));
+          
+          historyContainer.innerHTML = data.history_7days.map(d => {
+            const heightPct = Math.max(8, Math.min(100, Math.round((d.steps / maxSteps) * 100)));
+            const isToday = d.date === t.date;
+            const barBg = isToday ? 'bg-gradient-to-t from-teal-500 to-emerald-400' : 'bg-slate-800 hover:bg-teal-500/50';
+            const textClass = isToday ? 'text-teal-400 font-bold' : 'text-slate-400';
+            
+            // Format short date (e.g. 10/09)
+            const parts = d.date.split('-');
+            const shortDate = parts.length === 3 ? `${parts[2]}/${parts[1]}` : d.date;
+
+            return `
+              <div class="flex flex-col items-center justify-end h-full group relative cursor-pointer">
+                <!-- Tooltip -->
+                <div class="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-slate-700 text-[10px] text-white py-1 px-2 rounded-md whitespace-nowrap z-20 pointer-events-none shadow-lg">
+                  ${d.date}: <strong>${d.steps.toLocaleString('id-ID')} langkah</strong> (${d.distance_km} km)
+                </div>
+                <span class="text-[10px] text-slate-400 mb-1 group-hover:text-white">${d.steps > 0 ? (d.steps >= 1000 ? (d.steps/1000).toFixed(1) + 'k' : d.steps) : '0'}</span>
+                <div class="w-full max-w-[28px] rounded-t-md ${barBg} transition-all duration-300" style="height: ${heightPct}%;"></div>
+                <span class="text-[10px] ${textClass} mt-1.5 truncate">${shortDate}</span>
+              </div>
+            `;
+          }).join('');
+        }
+
+        safeLucide();
+      } catch (err) {
+        console.error('Error loading Zepp data:', err);
+      }
+    }
+
+    // Task Modals
+    function openTaskModal() {
+      document.getElementById('form-task').reset();
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+    function openTaskModalWithStatus(status) {
+      openTaskModal();
+      document.getElementById('task-status').value = status;
+    }
+    function closeTaskModal() {
+      document.getElementById('modal-task').classList.add('hidden');
+    }
+    async function submitTask(e) {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('task-title').value,
+        description: document.getElementById('task-desc').value,
+        category: document.getElementById('task-category').value || 'Personal',
+        priority: document.getElementById('task-priority').value,
+        status: document.getElementById('task-status').value,
+        due_date: document.getElementById('task-due-date').value
+      };
+      await authFetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeTaskModal();
+      await refreshAllData();
+    }
+
+    // Edit Task Modal
+    function openEditTaskModal(taskId) {
+      if (!globalTasks) return;
+      let target = null;
+      for (const list of Object.values(globalTasks.columns)) {
+        const found = list.find(t => t.id === taskId);
+        if (found) { target = found; break; }
+      }
+      if (!target) return;
+
+      document.getElementById('edit-task-id').value = target.id;
+      document.getElementById('edit-task-title').value = target.title;
+      document.getElementById('edit-task-desc').value = target.description || '';
+      document.getElementById('edit-task-category').value = target.category || 'Personal';
+      document.getElementById('edit-task-priority').value = target.priority || 'medium';
+      document.getElementById('edit-task-status').value = target.status || 'todo';
+      document.getElementById('edit-task-due-date').value = target.due_date || '';
+
+      document.getElementById('modal-edit-task').classList.remove('hidden');
+    }
+    function closeEditTaskModal() {
+      document.getElementById('modal-edit-task').classList.add('hidden');
+    }
+    async function submitEditTask(e) {
+      e.preventDefault();
+      const taskId = document.getElementById('edit-task-id').value;
+      const payload = {
+        title: document.getElementById('edit-task-title').value,
+        description: document.getElementById('edit-task-desc').value,
+        category: document.getElementById('edit-task-category').value,
+        priority: document.getElementById('edit-task-priority').value,
+        status: document.getElementById('edit-task-status').value,
+        due_date: document.getElementById('edit-task-due-date').value
+      };
+      await authFetch('/api/tasks/' + taskId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeEditTaskModal();
+      await refreshAllData();
+    }
+
+    // Job Modals
+    function openJobModal() {
+      document.getElementById('modal-job').classList.remove('hidden');
+    }
+    function closeJobModal() {
+      document.getElementById('modal-job').classList.add('hidden');
+    }
+    async function submitJob(e) {
+      e.preventDefault();
+      const payload = {
+        company: document.getElementById('job-company').value,
+        role: document.getElementById('job-role').value,
+        location: document.getElementById('job-location').value,
+        salary: document.getElementById('job-salary').value,
+        status: document.getElementById('job-status').value,
+        next_schedule: document.getElementById('job-schedule').value,
+        job_url: document.getElementById('job-url').value,
+        notes: document.getElementById('job-notes').value
+      };
+      await authFetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeJobModal();
+      await refreshAllData();
+    }
+
+    // Auto-refresh interval every 30 seconds
+    setInterval(() => {
+      if (isAuthenticated) refreshAllData(false);
+    }, 30000);
+
+    // Initial Load & Auth Check
+    function initApp() {
+      checkAuth();
+      
+      // Auto-clear login error states on typing
+      ['login-username', 'login-password'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            el.classList.remove('border-rose-500', 'focus:border-rose-500');
+            const errBox = document.getElementById('login-error-box');
+            if (errBox) {
+              errBox.classList.add('hidden');
+              errBox.style.display = 'none';
+            }
+          });
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (globalTasks) renderTaskKanban(globalTasks.columns);
+        if (globalJobs) renderKanban(globalJobs.columns);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
