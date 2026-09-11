@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 
 from backend.config import JOB_DB
-from backend.database import get_db_connection
+from backend.database import get_db_connection, init_job_db
 from backend.security import get_current_user
 from backend.websocket import trigger_ws_event
 
@@ -41,7 +41,7 @@ def get_jobs(
 ):
     """Fetch job applications grouped by Kanban columns + stats."""
     if not JOB_DB.exists():
-        raise HTTPException(status_code=404, detail="Job hunter database not found")
+        init_job_db()
 
     with get_db_connection(JOB_DB) as conn:
         cur = conn.cursor()
@@ -91,7 +91,7 @@ def get_jobs(
 def create_job(job: JobCreate, current_user: str = Depends(get_current_user)):
     """Add a new job application."""
     if not JOB_DB.exists():
-        raise HTTPException(status_code=404, detail="Job hunter database not found")
+        init_job_db()
 
     applied_date = job.applied_date
     if not applied_date and job.status != "wishlist":
@@ -114,7 +114,7 @@ def create_job(job: JobCreate, current_user: str = Depends(get_current_user)):
 def update_job_status(job_id: int, payload: JobStatusUpdate, current_user: str = Depends(get_current_user)):
     """Advance or update the status of a job application."""
     if not JOB_DB.exists():
-        raise HTTPException(status_code=404, detail="Job hunter database not found")
+        init_job_db()
 
     with get_db_connection(JOB_DB) as conn:
         cur = conn.cursor()
@@ -150,7 +150,7 @@ def update_job_status(job_id: int, payload: JobStatusUpdate, current_user: str =
 def delete_job(job_id: int, current_user: str = Depends(get_current_user)):
     """Remove a job application."""
     if not JOB_DB.exists():
-        raise HTTPException(status_code=404, detail="Job hunter database not found")
+        init_job_db()
 
     with get_db_connection(JOB_DB) as conn:
         cur = conn.cursor()

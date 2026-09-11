@@ -1,19 +1,21 @@
 """
 Database connection helpers and initialization.
+Provides automatic schema migrations for tasks and job applications.
 """
 
 import sqlite3
 from pathlib import Path
-from backend.config import TASK_DB
+from backend.config import TASK_DB, JOB_DB
 
 def get_db_connection(db_path: Path) -> sqlite3.Connection:
     """Open SQLite connection with row factory and standard busy timeout."""
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), timeout=10.0)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_task_db():
-    """Initialize tasks database table schema if it does not exist (zero auto-seeding)."""
+    """Initialize tasks database table schema if it does not exist."""
     TASK_DB.parent.mkdir(parents=True, exist_ok=True)
     with get_db_connection(TASK_DB) as conn:
         conn.execute("PRAGMA journal_mode=WAL;")
@@ -32,4 +34,28 @@ def init_task_db():
         """)
         conn.commit()
 
+def init_job_db():
+    """Initialize job hunter database table schema if it does not exist."""
+    JOB_DB.parent.mkdir(parents=True, exist_ok=True)
+    with get_db_connection(JOB_DB) as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS job_applications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company TEXT NOT NULL,
+                role TEXT NOT NULL,
+                location TEXT DEFAULT "Surabaya / Remote",
+                salary TEXT DEFAULT "",
+                job_url TEXT DEFAULT "",
+                status TEXT NOT NULL DEFAULT "wishlist",
+                applied_date TEXT DEFAULT "",
+                next_schedule TEXT DEFAULT "",
+                notes TEXT DEFAULT "",
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
 init_task_db()
+init_job_db()
