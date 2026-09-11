@@ -10,6 +10,20 @@ from backend.security import get_current_user
 router = APIRouter(prefix="/api/weather", tags=["Weather & BMKG"])
 
 
+def parse_tsunami_status(raw_potensi: str) -> tuple[str, bool]:
+    """Parse raw BMKG Potensi field into clear tsunami status and danger boolean."""
+    if not raw_potensi:
+        return "Tidak Berpotensi", False
+    lower = raw_potensi.lower()
+    if "berpotensi tsunami" in lower and "tidak" not in lower:
+        return "Berpotensi Tsunami", True
+    if "tidak berpotensi" in lower:
+        return "Tidak Berpotensi", False
+    if "dirasakan" in lower:
+        return "Tidak Berpotensi (Darat)", False
+    return raw_potensi, False
+
+
 @router.get("")
 def get_weather_detail(current_user: str = Depends(get_current_user)):
     """Detailed live weather, AQI, and BMKG Earthquake alerts for Surabaya & Indonesia."""
@@ -54,11 +68,16 @@ def get_weather_detail(current_user: str = Depends(get_current_user)):
         try:
             raw_eq = fetch_latest_earthquake()
             if raw_eq and not raw_eq.get("error"):
+                potensi_raw = raw_eq.get("potensi", "")
+                tsunami_label, is_tsunami_danger = parse_tsunami_status(potensi_raw)
                 earthquake_data = {
                     **raw_eq,
                     "depth": raw_eq.get("kedalaman", ""),
                     "epicenter": raw_eq.get("wilayah", ""),
-                    "tsunami_potential": raw_eq.get("potensi", ""),
+                    "tsunami_potential": tsunami_label,
+                    "tsunami_status": tsunami_label,
+                    "is_tsunami_danger": is_tsunami_danger,
+                    "raw_potensi": potensi_raw,
                     "distance_surabaya_km": raw_eq.get("distance_to_surabaya_km"),
                     "distance_km": raw_eq.get("distance_to_surabaya_km"),
                 }
@@ -71,17 +90,21 @@ def get_weather_detail(current_user: str = Depends(get_current_user)):
         try:
             raw_recent = fetch_recent_earthquakes(limit=5)
             if isinstance(raw_recent, list):
-                recent_earthquakes = [
-                    {
+                recent_earthquakes = []
+                for item in raw_recent:
+                    potensi_item = item.get("potensi", "")
+                    tsunami_lbl, is_danger = parse_tsunami_status(potensi_item)
+                    recent_earthquakes.append({
                         **item,
                         "depth": item.get("kedalaman", ""),
                         "epicenter": item.get("wilayah", ""),
-                        "tsunami_potential": item.get("potensi", ""),
+                        "tsunami_potential": tsunami_lbl,
+                        "tsunami_status": tsunami_lbl,
+                        "is_tsunami_danger": is_danger,
+                        "raw_potensi": potensi_item,
                         "distance_surabaya_km": item.get("distance_to_surabaya_km"),
                         "distance_km": item.get("distance_to_surabaya_km"),
-                    }
-                    for item in raw_recent
-                ]
+                    })
             else:
                 recent_earthquakes = []
         except Exception as e:

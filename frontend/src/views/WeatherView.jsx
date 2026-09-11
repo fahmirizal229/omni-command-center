@@ -214,7 +214,9 @@ export function WeatherView({ weatherData }) {
             </div>
             <div className="p-4 rounded-lg bg-zinc-950 border border-zinc-800 text-center space-y-1">
               <p className="text-xs text-zinc-500">{t('weather_quake_potential', 'Potensi Tsunami')}</p>
-              <p className="text-xs font-semibold text-emerald-400 mt-2">{latestQuake.potensi || latestQuake.tsunami_potential || 'Tidak Berpotensi'}</p>
+              <p className={`text-xs font-semibold mt-2 ${latestQuake.is_tsunami_danger ? 'text-rose-400' : 'text-emerald-400'}`}>
+                {latestQuake.tsunami_status || latestQuake.tsunami_potential || 'Tidak Berpotensi'}
+              </p>
             </div>
             <div className="p-4 rounded-lg bg-zinc-950 border border-zinc-800 text-center space-y-1">
               <p className="text-xs text-zinc-500">{t('weather_quake_distance', 'Jarak ke Surabaya')}</p>
@@ -234,8 +236,13 @@ export function WeatherView({ weatherData }) {
                 <Clock className="w-3 h-3 inline mr-1 text-zinc-500" />
                 {latestQuake.tanggal || ''} {latestQuake.jam || ''} ({latestQuake.datetime || '--'})
               </p>
+              {latestQuake.raw_potensi && latestQuake.raw_potensi !== 'Tidak berpotensi TSUNAMI' && (
+                <p className="text-zinc-400 text-[11px]">
+                  <strong className="text-zinc-300">Catatan Diseminasi BMKG:</strong> {latestQuake.raw_potensi}
+                </p>
+              )}
               {latestQuake.dirasakan && (
-                <p className="text-amber-400/90 text-[11px] mt-1">
+                <p className="text-amber-400/90 text-[11px]">
                   <strong>Skala Dirasakan:</strong> {latestQuake.dirasakan}
                 </p>
               )}
