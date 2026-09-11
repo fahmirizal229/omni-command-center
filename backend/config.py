@@ -14,6 +14,7 @@ AUTH_FILE = CONFIG_DIR / "dashboard_auth.json"
 
 # Databases
 TASK_DB = Path(os.getenv("DASHBOARD_TASK_DB", str(HOME_DIR / "dashboard" / "tasks.db")))
+PORTFOLIO_DB = Path(os.getenv("DASHBOARD_PORTFOLIO_DB", str(HOME_DIR / "dashboard" / "portfolio.db")))
 
 # Job DB: Use custom path if exists, otherwise fallback to local dashboard/jobs.db
 _default_job_db = HOME_DIR / "mcp-job-hunter" / "job_hunter.db"

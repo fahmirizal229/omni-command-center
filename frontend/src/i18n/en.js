@@ -1,6 +1,7 @@
 export default {
   // Navigation & Sidebar
   nav_overview: "Overview",
+  nav_profile: "Profile & CV",
   nav_storage: "Storage Vault",
   nav_tasks: "Personal Tasks",
   nav_jobs: "Career Tracker",

@@ -16,6 +16,7 @@ import { WeatherView } from './views/WeatherView';
 import { ZeppView } from './views/ZeppView';
 import { SchedulesView } from './views/SchedulesView';
 import { StorageView } from './views/StorageView';
+import { ProfileEditorView } from './views/ProfileEditorView';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -166,6 +167,9 @@ export default function App() {
       <main className="flex-1 px-4 lg:px-8 py-6 pb-20 sm:pb-8 max-w-7xl w-full mx-auto">
         {activeTab === 'overview' && (
           <OverviewView overview={overviewData} onNavigate={handleTabChange} />
+        )}
+        {activeTab === 'profile' && (
+          <ProfileEditorView />
         )}
         {activeTab === 'storage' && (
           <StorageView />

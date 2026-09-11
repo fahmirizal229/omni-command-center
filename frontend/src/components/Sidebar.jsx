@@ -13,12 +13,14 @@ import {
   CloudSun,
   Activity,
   CalendarClock,
-  HardDrive
+  HardDrive,
+  UserCheck
 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 
 export const TAB_DEFINITIONS = [
   { id: "overview", labelKey: "nav_overview", defaultLabel: "Ringkasan", icon: LayoutDashboard },
+  { id: "profile", labelKey: "nav_profile", defaultLabel: "Profil & CV", icon: UserCheck },
   { id: "storage", labelKey: "nav_storage", defaultLabel: "File & Foto", icon: HardDrive },
   { id: "tasks", labelKey: "nav_tasks", defaultLabel: "Tugas Pribadi", icon: CheckSquare },
   { id: "jobs", labelKey: "nav_jobs", defaultLabel: "Pelacak Karir", icon: Briefcase },

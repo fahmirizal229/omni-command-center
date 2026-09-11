@@ -218,4 +218,9 @@ export const api = {
       xhr.send(formData);
     });
   },
+
+  // Portfolio & Profile CMS
+  getProfile: () => request("/profile"),
+  updateProfile: (data) => request("/profile", { method: "PUT", body: JSON.stringify(data) }),
+  resetProfile: () => request("/profile/reset", { method: "POST" }),
 };

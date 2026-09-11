@@ -27,6 +27,7 @@ from backend.routes.second_brain import router as second_brain_router
 from backend.routes.weather import router as weather_router
 from backend.routes.zepp import router as zepp_router
 from backend.routes.schedules import router as schedules_router
+from backend.routes.portfolio import router as portfolio_router
 
 
 @asynccontextmanager
@@ -74,6 +75,7 @@ app.include_router(second_brain_router)
 app.include_router(weather_router)
 app.include_router(zepp_router)
 app.include_router(schedules_router)
+app.include_router(portfolio_router)
 
 
 # --- Real-Time WebSocket Endpoints ---

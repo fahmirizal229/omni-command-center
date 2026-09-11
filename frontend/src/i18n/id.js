@@ -1,6 +1,7 @@
 export default {
   // Navigation & Sidebar
   nav_overview: "Ringkasan",
+  nav_profile: "Profil & CV",
   nav_storage: "Storage Vault",
   nav_tasks: "Tugas Pribadi",
   nav_jobs: "Pelacak Karir",
