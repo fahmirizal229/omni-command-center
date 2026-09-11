@@ -1,0 +1,313 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.03" />
+    </linearGradient>
+    <linearGradient id="cpuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="memGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <linearGradient id="diskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#fbbf24" />
+    </linearGradient>
+    <linearGradient id="bmkgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <style>
+    .text-title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 700; fill: #ffffff; }
+    .text-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 400; fill: #94a3b8; }
+    .text-bold { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 600; fill: #ffffff; }
+    .text-muted { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #64748b; }
+    .card { rx: 12; ry: 12; fill: url(#cardGrad); stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; }
+    .tag { rx: 4; ry: 4; font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 600; }
+  </style>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="680" fill="url(#bgGrad)" rx="16" />
+
+  <!-- App Window Container -->
+  <g transform="translate(20, 20)">
+    <!-- Window Border & Frame -->
+    <rect width="1160" height="640" rx="12" fill="#0b1120" stroke="#334155" stroke-width="1.5" filter="url(#dropShadow)" />
+
+    <!-- Window Header / Titlebar -->
+    <rect width="1160" height="42" rx="12" fill="#1e293b" />
+    <!-- Traffic lights -->
+    <circle cx="24" cy="21" r="5.5" fill="#ef4444" />
+    <circle cx="42" cy="21" r="5.5" fill="#f59e0b" />
+    <circle cx="60" cy="21" r="5.5" fill="#10b981" />
+    
+    <!-- URL Bar -->
+    <rect x="360" y="8" width="440" height="26" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1" />
+    <text x="490" y="25" class="text-body" font-size="12" fill="#94a3b8">🔒 https://dashboard.arusuka.my.id</text>
+
+    <!-- Language & Status -->
+    <rect x="1040" y="10" width="46" height="22" rx="4" fill="#312e81" stroke="#4f46e5" stroke-width="1" />
+    <text x="1053" y="25" class="text-bold" font-size="11" fill="#818cf8">EN</text>
+    <rect x="1092" y="10" width="46" height="22" rx="4" fill="#1e293b" />
+    <text x="1106" y="25" class="text-body" font-size="11" fill="#94a3b8">ID</text>
+
+    <!-- ================= SIDEBAR ================= -->
+    <g transform="translate(0, 42)">
+      <rect width="210" height="598" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+      
+      <!-- Brand Logo -->
+      <g transform="translate(18, 20)">
+        <rect width="32" height="32" rx="8" fill="url(#primaryGrad)" />
+        <path d="M 8 16 L 16 8 L 24 16 L 16 24 Z" fill="#ffffff" />
+        <text x="42" y="16" class="text-title" font-size="14">Omni Center</text>
+        <text x="42" y="28" class="text-muted">v2.0 Production</text>
+      </g>
+
+      <!-- Nav Items -->
+      <g transform="translate(12, 75)">
+        <!-- Active Item: Overview -->
+        <rect width="186" height="36" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1" />
+        <circle cx="20" cy="18" r="4" fill="#3b82f6" />
+        <text x="36" y="23" class="text-bold" font-size="13" fill="#60a5fa">📊 Overview</text>
+
+        <!-- Item: Storage Vault -->
+        <g transform="translate(0, 44)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">📸 Storage Vault</text>
+        </g>
+
+        <!-- Item: Task Kanban -->
+        <g transform="translate(0, 88)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">📝 Task Kanban</text>
+        </g>
+
+        <!-- Item: Job Hunter -->
+        <g transform="translate(0, 132)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">💼 Job Hunter</text>
+        </g>
+
+        <!-- Item: Second Brain -->
+        <g transform="translate(0, 176)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">🧠 Second Brain</text>
+        </g>
+
+        <!-- Item: Weather & BMKG -->
+        <g transform="translate(0, 220)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">🌦️ Weather / BMKG</text>
+        </g>
+
+        <!-- Item: Schedules -->
+        <g transform="translate(0, 264)">
+          <rect width="186" height="36" rx="8" fill="transparent" />
+          <circle cx="20" cy="18" r="4" fill="#64748b" />
+          <text x="36" y="23" class="text-body" font-size="13">⏰ Schedules</text>
+        </g>
+      </g>
+
+      <!-- Sidebar Footer Status -->
+      <g transform="translate(18, 520)">
+        <rect width="174" height="54" rx="8" fill="#1e293b" />
+        <circle cx="16" cy="27" r="5" fill="#10b981" />
+        <text x="30" y="22" class="text-bold" font-size="11">WebSocket Live</text>
+        <text x="30" y="38" class="text-muted">Telemetry Connected</text>
+      </g>
+    </g>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <g transform="translate(230, 56)">
+      
+      <!-- Top Stats Row (4 Metric Cards) -->
+      <!-- Card 1: CPU -->
+      <g transform="translate(0, 0)">
+        <rect width="215" height="100" class="card" />
+        <text x="16" y="26" class="text-body" font-size="12">CPU UTILIZATION</text>
+        <text x="16" y="58" class="text-title" font-size="26">34.8%</text>
+        <text x="16" y="82" class="text-muted">8 Cores · 2.4 GHz</text>
+        <!-- Mini Progress Bar -->
+        <rect x="110" y="44" width="90" height="8" rx="4" fill="#334155" />
+        <rect x="110" y="44" width="31" height="8" rx="4" fill="url(#cpuGrad)" />
+      </g>
+
+      <!-- Card 2: Memory -->
+      <g transform="translate(230, 0)">
+        <rect width="215" height="100" class="card" />
+        <text x="16" y="26" class="text-body" font-size="12">MEMORY (RAM)</text>
+        <text x="16" y="58" class="text-title" font-size="26">4.1 GB</text>
+        <text x="16" y="82" class="text-muted">52.5% of 7.8 GB Total</text>
+        <!-- Mini Progress Bar -->
+        <rect x="110" y="44" width="90" height="8" rx="4" fill="#334155" />
+        <rect x="110" y="44" width="47" height="8" rx="4" fill="url(#memGrad)" />
+      </g>
+
+      <!-- Card 3: Storage Vault -->
+      <g transform="translate(460, 0)">
+        <rect width="215" height="100" class="card" />
+        <text x="16" y="26" class="text-body" font-size="12">STORAGE VAULT</text>
+        <text x="16" y="58" class="text-title" font-size="26">83.1 GB</text>
+        <text x="16" y="82" class="text-muted">Available Free Disk</text>
+        <!-- Mini Progress Bar -->
+        <rect x="110" y="44" width="90" height="8" rx="4" fill="#334155" />
+        <rect x="110" y="44" width="18" height="8" rx="4" fill="url(#diskGrad)" />
+      </g>
+
+      <!-- Card 4: Weather / BMKG -->
+      <g transform="translate(690, 0)">
+        <rect width="220" height="100" class="card" />
+        <text x="16" y="26" class="text-body" font-size="12">SURABAYA WEATHER</text>
+        <text x="16" y="58" class="text-title" font-size="26">29°C</text>
+        <text x="80" y="56" class="text-bold" font-size="13" fill="#38bdf8">Partly Cloudy</text>
+        <text x="16" y="82" class="text-muted">AQI 42 (Good) · BMKG Safe</text>
+      </g>
+
+      <!-- Middle Row: Telemetry Chart & Storage Vault Gallery -->
+      <!-- Left: Real-time Telemetry Graph -->
+      <g transform="translate(0, 116)">
+        <rect width="445" height="230" class="card" />
+        <text x="20" y="30" class="text-bold" font-size="14">Live Telemetry Stream</text>
+        <text x="20" y="46" class="text-muted">CPU &amp; Memory throughput (2s interval)</text>
+        
+        <!-- Graph Area -->
+        <path d="M 20 200 L 70 170 L 120 185 L 170 140 L 220 160 L 270 120 L 320 135 L 370 110 L 425 90 L 425 210 L 20 210 Z" fill="url(#primaryGrad)" fill-opacity="0.15" />
+        <path d="M 20 200 L 70 170 L 120 185 L 170 140 L 220 160 L 270 120 L 320 135 L 370 110 L 425 90" fill="none" stroke="#6366f1" stroke-width="2.5" />
+        <circle cx="425" cy="90" r="4" fill="#6366f1" />
+
+        <!-- Graph Grid Lines -->
+        <line x1="20" y1="90" x2="425" y2="90" stroke="#334155" stroke-dasharray="4" />
+        <line x1="20" y1="140" x2="425" y2="140" stroke="#334155" stroke-dasharray="4" />
+        <line x1="20" y1="190" x2="425" y2="190" stroke="#334155" stroke-dasharray="4" />
+      </g>
+
+      <!-- Right: Storage Vault & Photo Gallery Preview -->
+      <g transform="translate(460, 116)">
+        <rect width="450" height="230" class="card" />
+        <text x="20" y="30" class="text-bold" font-size="14">📸 Storage Vault &amp; Media Backup</text>
+        <text x="20" y="46" class="text-muted">Encrypted local file vault · Lightbox gallery</text>
+
+        <!-- Gallery Thumbnails -->
+        <g transform="translate(20, 60)">
+          <!-- Photo 1 -->
+          <rect width="95" height="75" rx="8" fill="#334155" stroke="#475569" stroke-width="1" />
+          <path d="M 15 60 L 35 35 L 55 55 L 70 45 L 85 60 Z" fill="#64748b" />
+          <circle cx="30" cy="25" r="6" fill="#f59e0b" />
+          <text x="10" y="92" class="text-muted">camera_01.jpg</text>
+
+          <!-- Photo 2 -->
+          <g transform="translate(105, 0)">
+            <rect width="95" height="75" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" />
+            <path d="M 10 65 L 45 25 L 85 65 Z" fill="#3b82f6" fill-opacity="0.6" />
+            <text x="10" y="92" class="text-muted">backup_2026.png</text>
+          </g>
+
+          <!-- Folder 1 -->
+          <g transform="translate(210, 0)">
+            <rect width="95" height="75" rx="8" fill="#1e1b4b" stroke="#4338ca" stroke-width="1" />
+            <text x="35" y="45" font-size="22">📁</text>
+            <text x="24" y="92" class="text-bold" font-size="10" fill="#a5b4fc">Documents</text>
+          </g>
+
+          <!-- Folder 2 -->
+          <g transform="translate(315, 0)">
+            <rect width="95" height="75" rx="8" fill="#064e3b" stroke="#059669" stroke-width="1" />
+            <text x="35" y="45" font-size="22">📸</text>
+            <text x="28" y="92" class="text-bold" font-size="10" fill="#6ee7b7">Photos</text>
+          </g>
+        </g>
+
+        <!-- Storage Status Bar -->
+        <g transform="translate(20, 185)">
+          <rect width="410" height="24" rx="6" fill="#1e293b" />
+          <text x="15" y="16" class="text-bold" font-size="11" fill="#38bdf8">⚡ Drag &amp; Drop Multi-File Upload Active</text>
+        </g>
+      </g>
+
+      <!-- Bottom Row: Personal Task Kanban Board Preview -->
+      <g transform="translate(0, 360)">
+        <rect width="910" height="200" class="card" />
+        <text x="20" y="28" class="text-bold" font-size="14">📝 Personal Task Kanban Board</text>
+        <text x="20" y="44" class="text-muted">Task management with priority badges &amp; categories</text>
+
+        <!-- Columns -->
+        <!-- Col 1: To Do -->
+        <g transform="translate(20, 56)">
+          <rect width="275" height="130" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+          <text x="14" y="22" class="text-bold" font-size="12" fill="#94a3b8">📌 TO DO (2)</text>
+          
+          <!-- Task Card 1 -->
+          <g transform="translate(10, 32)">
+            <rect width="255" height="42" rx="6" fill="#1e293b" />
+            <text x="12" y="20" class="text-bold" font-size="11">Configure Cloudflare SSL HSTS</text>
+            <rect x="12" y="26" width="48" height="12" class="tag" fill="#881337" />
+            <text x="16" y="35" fill="#fda4af" font-size="8">URGENT</text>
+            <text x="66" y="35" class="text-muted" font-size="8">DevOps</text>
+          </g>
+
+          <!-- Task Card 2 -->
+          <g transform="translate(10, 80)">
+            <rect width="255" height="42" rx="6" fill="#1e293b" />
+            <text x="12" y="20" class="text-bold" font-size="11">Refactor MCP Job Hunter Router</text>
+            <rect x="12" y="26" width="40" height="12" class="tag" fill="#1e3a8a" />
+            <text x="16" y="35" fill="#93c5fd" font-size="8">MEDIUM</text>
+          </g>
+        </g>
+
+        <!-- Col 2: In Progress -->
+        <g transform="translate(315, 56)">
+          <rect width="275" height="130" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+          <text x="14" y="22" class="text-bold" font-size="12" fill="#60a5fa">⚡ IN PROGRESS (1)</text>
+
+          <!-- Task Card 1 -->
+          <g transform="translate(10, 32)">
+            <rect width="255" height="42" rx="6" fill="#1e293b" stroke="#3b82f6" stroke-width="0.5" />
+            <text x="12" y="20" class="text-bold" font-size="11">Publish MCP Portfolio on GitHub</text>
+            <rect x="12" y="26" width="34" height="12" class="tag" fill="#701a75" />
+            <text x="16" y="35" fill="#f0abfc" font-size="8">HIGH</text>
+            <text x="52" y="35" class="text-muted" font-size="8">OpenSource</text>
+          </g>
+        </g>
+
+        <!-- Col 3: Done -->
+        <g transform="translate(610, 56)">
+          <rect width="280" height="130" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" />
+          <text x="14" y="22" class="text-bold" font-size="12" fill="#34d399">✅ COMPLETED (14)</text>
+
+          <!-- Task Card 1 -->
+          <g transform="translate(10, 32)">
+            <rect width="260" height="42" rx="6" fill="#1e293b" />
+            <text x="12" y="20" class="text-body" font-size="11" fill="#94a3b8">FastAPI APIRouter Modularization</text>
+            <rect x="12" y="26" width="34" height="12" class="tag" fill="#064e3b" />
+            <text x="16" y="35" fill="#6ee7b7" font-size="8">DONE</text>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

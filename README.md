@@ -1,38 +1,55 @@
+<div align="center">
+
 # 🚀 Omni Command Center & Storage Vault
 
-Omni Command Center is a modern, modular, privacy-first personal server dashboard, knowledge aggregator, and storage vault built with **FastAPI**, **React 19**, **Vite**, **Tailwind CSS**, and **WebSocket** real-time streaming.
+<p align="center">
+  <strong>Modern, modular, privacy-first personal server command center, encrypted media vault, and real-time telemetry dashboard.</strong>
+</p>
+
+[![Python](https://img.shields.io/badge/Python-3.14+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Realtime_Stream-6366F1?style=flat-square&logo=socketdotio&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+[![License](https://img.shields.io/badge/License-MIT-emerald?style=flat-square)](LICENSE)
+
+<br />
+
+<img src="./assets/preview.svg" alt="Omni Command Center Dashboard Preview" width="100%" />
+
+</div>
 
 ---
 
-## ✨ Features & Modules
+## ✨ Features & Architecture
 
-1. **📊 Live Server Telemetry & Overview**:
-   - Real-time CPU, RAM, Disk, Uptime, and Network metrics streamed via WebSockets every 2 seconds.
-   - Fail2ban intrusion defense health & security jail inspector.
+1. **📊 Live Server Telemetry & Health Stream**:
+   - High-frequency CPU, Memory, Disk usage, Uptime, and Network I/O metrics streamed via WebSockets every 2 seconds.
+   - Fail2ban intrusion defense health & security jail status inspector.
 
-2. **📸 Storage Vault & Photo Backup**:
-   - Isolated private file storage with anti path-traversal protection.
+2. **📸 Storage Vault & Media Backup Gallery**:
+   - Isolated private file storage with strict anti path-traversal protection.
    - Dual-view interface: **Photo & Media Gallery** (with full-resolution Lightbox viewer) and **File Explorer** (breadcrumbs, table view).
-   - Drag & drop multi-file uploader with real-time progress bar.
-   - Folder creation, rename, file download, and delete operations.
+   - Drag & drop multi-file uploader with live streaming progress bar.
+   - Folder creation, file renaming, download, and delete operations.
 
 3. **📝 Personal Task Kanban Board**:
-   - Clean Kanban board for personal to-do items with priority tags, status columns, categories, and due dates.
+   - SQLite WAL-backed Kanban board with urgent priority tags, status columns, categories, and due dates.
 
 4. **💼 Career & Job Hunter Tracker**:
-   - Application status pipeline (Wishlist, Applied, Screening, Technical Test, Interview, Offer, Rejected) for tracking career applications.
+   - Complete pipeline tracking (Wishlist, Applied, Screening, Technical Test, Interview, Offer, Rejected) with interview schedules.
 
 5. **🧠 Second Brain & Knowledge Graph**:
-   - Interactive search and preview of Obsidian markdown vault notes, concepts, and persistent rules.
+   - Interactive search and preview of Obsidian markdown vault notes, concepts, and persistent rules with automated privacy redaction.
 
 6. **🌦️ Weather & BMKG Earthquake Guardian**:
-   - Real-time weather, AQI, and BMKG earthquake early warning alerts for Surabaya & Indonesia.
+   - Hyper-local live weather forecast, AQI (Air Quality Index), and real-time BMKG earthquake early warning alerts for Indonesia.
 
-7. **🏃 Zepp / Amazfit Fitness Stats**:
-   - Live synchronization with Amazfit smartwatch metrics (daily steps, heart rate, sleep quality).
+7. **🏃 Zepp / Amazfit Smartwatch Health Sync**:
+   - Live synchronization with Amazfit wearable metrics (daily step count, calorie burn, heart rate, sleep stages).
 
 8. **🛡️ Enterprise-Grade Security & Hardening**:
-   - Anti brute-force login rate limiting (FastAPI sliding window limiter).
+   - Dual-layer anti brute-force login rate limiting (FastAPI sliding window limiter).
    - Session Cookie Authentication with PBKDF2-HMAC-SHA256 password hashing and HMAC-signed tokens.
    - Strict CORS whitelist and dynamic HTTPS `secure=True` cookie attributes.
 
@@ -41,31 +58,31 @@ Omni Command Center is a modern, modular, privacy-first personal server dashboar
 ## 🛠️ Tech Stack
 
 - **Backend**: Python 3.14+, FastAPI, Uvicorn, SQLite (WAL mode), WebSocket, Psutil
-- **Frontend**: React 19, Vite, Tailwind CSS, Lucide React, i18next
+- **Frontend**: React 19, Vite, Tailwind CSS, Lucide React, i18next (English & Bahasa Indonesia)
 - **Reverse Proxy & Security**: Nginx, Let's Encrypt SSL/TLS, Fail2ban, UFW
 
 ---
 
-## 🚀 Quick Start (Clone & Run Anywhere)
+## 🚀 Quick Start (Run Anywhere)
 
-This project is completely portable and can run on any Linux, macOS, or WSL environment.
+This repository is 100% portable and plug-and-play across Linux, macOS, and WSL environments.
 
 ### 1. Clone & Prerequisites
 ```bash
 git clone https://github.com/fahmirizal229/omni-command-center.git
-cd dashboard
+cd omni-command-center
 ```
 
 ### 2. Backend Setup
 ```bash
-# Create virtual environment (Optional but recommended)
+# Create and activate virtual environment (Optional)
 python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# (Optional) Copy .env.example if you wish to customize paths
+# (Optional) Customize environment paths
 cp .env.example .env
 ```
 
@@ -81,15 +98,18 @@ cd ..
 ```bash
 python3 app.py
 ```
-Visit `http://127.0.0.1:8888` in your browser. Default master credentials will be initialized on first run (`arusuka` / `arusuka123`).
+Open `http://127.0.0.1:8888` in your browser. Master admin credentials are automatically initialized on the first run (`arusuka` / `arusuka123`).
 
 ---
 
-## 📁 Architecture Overview
+## 📁 Repository Structure
 
 ```
-dashboard/
+omni-command-center/
 ├── app.py                     # Main application entry point & SPA static files server
+├── requirements.txt           # Python dependencies
+├── assets/
+│   └── preview.svg            # High-resolution dashboard UI vector preview
 ├── backend/
 │   ├── config.py              # Dynamic configuration & path resolver
 │   ├── database.py            # SQLite database initializer & connection helper
@@ -111,4 +131,4 @@ dashboard/
 ---
 
 ## 🔒 License
-Private & Personal Workspace © 2026 Fahmi Rizal (@arusuka).
+MIT License © 2026 Muhammad Fahmi Rizal ([@fahmirizal229](https://github.com/fahmirizal229)).
