@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import { User, Lock, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export function LoginView() {
+  const { t } = useLanguage();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,13 +23,13 @@ export function LoginView() {
     setShake(false);
 
     if (!username.trim()) {
-      setError('Harap masukkan username.');
-      showToast('Username tidak boleh kosong.', 'error', 'Login Gagal');
+      setError(t('login_failed', 'Harap masukkan username.'));
+      showToast(t('login_failed', 'Username tidak boleh kosong.'), 'error', 'Login Error');
       return;
     }
     if (!password) {
-      setError('Harap masukkan password.');
-      showToast('Password tidak boleh kosong.', 'error', 'Login Gagal');
+      setError(t('login_failed', 'Harap masukkan password.'));
+      showToast(t('login_failed', 'Password tidak boleh kosong.'), 'error', 'Login Error');
       return;
     }
 
@@ -35,11 +37,11 @@ export function LoginView() {
     try {
       await login(username.trim(), password);
     } catch (err) {
-      const msg = err.message || 'Username atau password yang kamu masukkan salah.';
+      const msg = err.message || t('login_failed', 'Username atau password salah.');
       setError(msg);
       setShake(true);
       setPassword('');
-      showToast(msg, 'error', 'Login Gagal');
+      showToast(msg, 'error', 'Login Error');
       if (passwordInputRef.current) {
         passwordInputRef.current.focus();
       }
@@ -58,12 +60,14 @@ export function LoginView() {
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex w-12 h-12 rounded-lg bg-zinc-800 border border-zinc-700/70 items-center justify-center text-zinc-100 font-bold text-lg mb-1 tracking-wide">
-            AR
+            OC
           </div>
           <h2 className="text-xl font-bold text-zinc-100 tracking-tight">
-            Masuk ke Workspace
+            {t('login_title', 'Masuk ke Omni Command Center')}
           </h2>
-          <p className="text-xs text-zinc-400">Masukkan kredensial akun untuk mengakses dashboard.</p>
+          <p className="text-xs text-zinc-400">
+            {t('login_subtitle', 'Masukkan password master admin untuk mengakses workspace pribadi.')}
+          </p>
         </div>
 
         {/* Error Alert Box */}
@@ -77,7 +81,7 @@ export function LoginView() {
         {/* Login Form */}
         <form onSubmit={handleLoginSubmit} autoComplete="off" className="space-y-4 text-xs">
           <div>
-            <label className="block font-medium text-zinc-300 mb-1.5">Username</label>
+            <label className="block font-medium text-zinc-300 mb-1.5">{t('login_username', 'Username')}</label>
             <div className="relative">
               <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -88,7 +92,7 @@ export function LoginView() {
                   if (error) setError('');
                 }}
                 autoComplete="off"
-                placeholder="Username"
+                placeholder={t('login_username', 'Username')}
                 className={`w-full pl-10 pr-4 py-2.5 bg-zinc-950 border rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all ${
                   error ? 'border-rose-500 focus:border-rose-500' : 'border-zinc-800 focus:border-zinc-500'
                 }`}
@@ -97,7 +101,7 @@ export function LoginView() {
           </div>
 
           <div>
-            <label className="block font-medium text-zinc-300 mb-1.5">Password</label>
+            <label className="block font-medium text-zinc-300 mb-1.5">{t('login_password', 'Password')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -108,7 +112,7 @@ export function LoginView() {
                   setPassword(e.target.value);
                   if (error) setError('');
                 }}
-                autoComplete="new-password"
+                autoComplete="off"
                 placeholder="••••••••"
                 className={`w-full pl-10 pr-4 py-2.5 bg-zinc-950 border rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all ${
                   error ? 'border-rose-500 focus:border-rose-500' : 'border-zinc-800 focus:border-zinc-500'
@@ -120,27 +124,26 @@ export function LoginView() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2 text-xs cursor-pointer disabled:opacity-60 active:scale-[0.99]"
+            className="w-full py-2.5 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-lg transition-all shadow-sm flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Memverifikasi...</span>
+                <Loader2 className="w-4 h-4 animate-spin text-zinc-900" />
+                <span>{t('loading', 'Memverifikasi...')}</span>
               </>
             ) : (
               <>
-                <span>Masuk ke Dashboard</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>{t('login_btn', 'Masuk')}</span>
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        <div className="text-center pt-2 border-t border-zinc-800/80">
-          <p className="text-[11px] text-zinc-500 flex items-center justify-center space-x-1.5 font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Sesi Terenkripsi & Aman</span>
-          </p>
+        {/* Footer Security Badge */}
+        <div className="pt-2 text-center text-[11px] text-zinc-500 flex items-center justify-center space-x-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>PBKDF2 SHA-256 + Sliding Window Rate Limiting</span>
         </div>
       </div>
     </div>

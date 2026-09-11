@@ -1,5 +1,6 @@
 import React from 'react';
 import { CalendarClock, Shield, CheckCircle2, AlertOctagon, Terminal, Bot, Sun, Moon, ShieldCheck, Archive, Clock } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const ICON_MAP = {
   'shield-alert': Shield,
@@ -20,10 +21,12 @@ const COLOR_BADGES = {
 };
 
 export function SchedulesView({ schedulesData }) {
+  const { t } = useLanguage();
+
   if (!schedulesData) {
     return (
       <div className="flex items-center justify-center py-20 text-zinc-500 text-xs">
-        Memuat jadwal cron sistem...
+        {t('loading', 'Memuat jadwal cron sistem...')}
       </div>
     );
   }
@@ -36,11 +39,13 @@ export function SchedulesView({ schedulesData }) {
       {/* Top Card */}
       <div className="p-6 rounded-xl bg-[#121215] border border-zinc-800 space-y-1">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-zinc-100 tracking-tight">Jadwal Cron & Otomasi</h3>
-          <span className="text-xs font-mono text-zinc-400">{schedules.length} Jadwal Aktif</span>
+          <h3 className="text-xl font-bold text-zinc-100 tracking-tight">
+            {t('schedules_title', 'Jadwal Otomasi & Daemon Sistem')}
+          </h3>
+          <span className="text-xs font-mono text-zinc-400">{schedules.length} {t('schedules_active', 'Aktif')}</span>
         </div>
         <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
-          Daftar background daemon, cron job Linux, dan proses terjadwal yang berjalan di server.
+          {t('schedules_subtitle', 'Daftar background daemon, cron job Linux, dan proses terjadwal yang berjalan di server.')}
         </p>
       </div>
 
@@ -77,11 +82,11 @@ export function SchedulesView({ schedulesData }) {
 
               <div className="pt-3 border-t border-zinc-900 grid grid-cols-2 gap-2 text-[11px] font-mono">
                 <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-800">
-                  <span className="text-[10px] text-zinc-500 block">Jadwal:</span>
+                  <span className="text-[10px] text-zinc-500 block">{t('schedules_col_schedule', 'Jadwal')}:</span>
                   <span className="text-zinc-200 font-medium">{job.schedule}</span>
                 </div>
                 <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-800">
-                  <span className="text-[10px] text-zinc-500 block">Target:</span>
+                  <span className="text-[10px] text-zinc-500 block">{t('schedules_col_target', 'Target')}:</span>
                   <span className="text-zinc-300 font-medium truncate block">{job.target}</span>
                 </div>
               </div>

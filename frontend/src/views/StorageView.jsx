@@ -29,8 +29,10 @@ import {
 } from "lucide-react";
 import { api, getAuthToken } from "../api";
 import { useToast } from "../context/ToastContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export function StorageView() {
+  const { t } = useLanguage();
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
 
@@ -61,11 +63,11 @@ export function StorageView() {
       setData(res);
       setCurrentPath(res.current_path || "");
     } catch (err) {
-      showToast(err.message || "Gagal memuat daftar file.", "error");
+      showToast(err.message || t('error_boundary_title', "Gagal memuat daftar file."), "error");
     } finally {
       setLoading(false);
     }
-  }, [currentPath, showToast]);
+  }, [currentPath, showToast, t]);
 
   useEffect(() => {
     fetchFiles(currentPath);
@@ -101,10 +103,10 @@ export function StorageView() {
       await api.uploadStorageFiles(currentPath, files, (percent) => {
         setUploadProgress(percent);
       });
-      showToast(`${files.length} file berhasil diunggah!`, "success");
+      showToast(t('vault_upload_success', `${files.length} file berhasil diunggah.`), "success");
       fetchFiles(currentPath);
     } catch (err) {
-      showToast(err.message || "Gagal mengunggah file.", "error");
+      showToast(err.message || t('error_boundary_title', "Gagal mengunggah file."), "error");
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -112,13 +114,12 @@ export function StorageView() {
     }
   };
 
-  // Create Folder
   const handleCreateFolder = async (e) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
     try {
       await api.createStorageFolder(currentPath, newFolderName.trim());
-      showToast(`Folder "${newFolderName}" berhasil dibuat.`, "success");
+      showToast(t('vault_folder_created', `Folder "${newFolderName}" berhasil dibuat.`), "success");
       setNewFolderName("");
       setIsCreateFolderOpen(false);
       fetchFiles(currentPath);
@@ -127,26 +128,25 @@ export function StorageView() {
     }
   };
 
-  // Rename
   const handleRename = async (e) => {
     e.preventDefault();
     if (!renameTarget || !renameValue.trim()) return;
     try {
       await api.renameStorageItem(currentPath, renameTarget.name, renameValue.trim());
-      showToast("Nama berhasil diubah.", "success");
+      showToast(t('vault_renamed_success', `Berhasil diubah menjadi "${renameValue.trim()}".`), "success");
       setRenameTarget(null);
+      setRenameValue("");
       fetchFiles(currentPath);
     } catch (err) {
-      showToast(err.message || "Gagal mengubah nama.", "error");
+      showToast(err.message || "Gagal mengubah nama file.", "error");
     }
   };
 
-  // Delete
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
       await api.deleteStorageItem(deleteTarget.path);
-      showToast(`${deleteTarget.is_dir ? "Folder" : "File"} berhasil dihapus.`, "success");
+      showToast(t('vault_deleted_success', `"${deleteTarget.name}" berhasil dihapus.`), "success");
       setDeleteTarget(null);
       fetchFiles(currentPath);
     } catch (err) {
@@ -154,38 +154,36 @@ export function StorageView() {
     }
   };
 
-  // Filter items
+  // Filter & Search
   const filteredItems = (data?.items || []).filter((item) => {
-    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    // 1. Search Query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      if (!item.name.toLowerCase().includes(q)) return false;
     }
-    if (filterType === "photos") return item.is_image;
-    if (filterType === "videos") return item.is_video;
-    if (filterType === "docs") return item.is_doc;
-    if (filterType === "backups") return item.is_archive || item.name.toLowerCase().includes("backup");
+
+    // 2. Filter Type
+    if (filterType === "photos") return item.is_image || item.is_dir;
+    if (filterType === "videos") return item.is_video || item.is_dir;
+    if (filterType === "docs") return item.is_doc || item.is_dir;
+    if (filterType === "backups") return item.is_archive || item.is_dir;
     return true;
   });
 
-  const mediaItems = filteredItems.filter((item) => item.is_image || item.is_video);
-
+  // Lightbox navigation
+  const mediaItems = filteredItems.filter((i) => i.is_image || i.is_video);
   const openLightbox = (item) => {
     const idx = mediaItems.findIndex((m) => m.path === item.path);
-    if (idx !== -1) {
-      setLightboxIndex(idx);
-    }
+    if (idx !== -1) setLightboxIndex(idx);
   };
 
   // Keyboard navigation for Lightbox
   useEffect(() => {
+    if (lightboxIndex === null) return;
     const handleKeyDown = (e) => {
-      if (lightboxIndex === null) return;
       if (e.key === "Escape") setLightboxIndex(null);
-      if (e.key === "ArrowRight") {
-        setLightboxIndex((prev) => (prev < mediaItems.length - 1 ? prev + 1 : 0));
-      }
-      if (e.key === "ArrowLeft") {
-        setLightboxIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
-      }
+      if (e.key === "ArrowLeft") setLightboxIndex((prev) => (prev > 0 ? prev - 1 : mediaItems.length - 1));
+      if (e.key === "ArrowRight") setLightboxIndex((prev) => (prev < mediaItems.length - 1 ? prev + 1 : 0));
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -216,13 +214,13 @@ export function StorageView() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-                  Storage Vault & Backup Foto
+                  {t('vault_title', 'Storage Vault & Backup Foto')}
                   <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">
-                    Khusus & Terisolasi
+                    {t('vault_badge', 'Khusus & Terisolasi')}
                   </span>
                 </h1>
                 <p className="text-xs text-zinc-400 mt-0.5">
-                  Folder aman di <code className="text-zinc-300">/home/arusuka/storage_vault</code>
+                  {t('vault_subtitle', 'Folder aman di /home/arusuka/storage_vault')}
                 </p>
               </div>
             </div>
@@ -243,7 +241,7 @@ export function StorageView() {
               className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-medium transition-all flex items-center space-x-2 shadow-sm disabled:opacity-50"
             >
               <Upload className="w-4 h-4" />
-              <span>Unggah File / Foto</span>
+              <span>{t('vault_upload_btn', 'Unggah File / Foto')}</span>
             </button>
 
             <button
@@ -251,13 +249,13 @@ export function StorageView() {
               className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-xl text-xs font-medium transition-all flex items-center space-x-2"
             >
               <FolderPlus className="w-4 h-4" />
-              <span>Folder Baru</span>
+              <span>{t('vault_new_folder', 'Folder Baru')}</span>
             </button>
 
             <button
               onClick={() => fetchFiles(currentPath)}
               className="p-2 bg-zinc-800/80 hover:bg-zinc-750 text-zinc-300 border border-zinc-700 rounded-xl text-xs transition-all"
-              title="Refresh"
+              title={t('btn_refresh', 'Refresh')}
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
             </button>
@@ -269,8 +267,8 @@ export function StorageView() {
           <div className="mt-5 pt-4 border-t border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex-1 max-w-md">
               <div className="flex justify-between text-xs text-zinc-400 mb-1.5">
-                <span>Ruang Terpakai Vault: <strong className="text-zinc-200">{data.disk.vault_used_formatted}</strong></span>
-                <span>VPS: <strong className="text-zinc-200">{data.disk.disk_free_gb} GB</strong> Tersisa</span>
+                <span>{t('vault_used_space', 'Ruang Terpakai Vault')}: <strong className="text-zinc-200">{data.disk.vault_used_formatted}</strong></span>
+                <span>{t('vault_vps_free', 'Sisa Kapasitas VPS')}: <strong className="text-zinc-200">{data.disk.disk_free_gb} GB</strong></span>
               </div>
               <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden border border-zinc-700/50">
                 <div
@@ -282,10 +280,10 @@ export function StorageView() {
 
             <div className="flex items-center gap-4 text-xs text-zinc-400">
               <div>
-                Total File: <span className="font-semibold text-zinc-200">{data.total_files}</span>
+                {t('vault_total_files', 'Total File')}: <span className="font-semibold text-zinc-200">{data.total_files}</span>
               </div>
               <div>
-                Foto & Media: <span className="font-semibold text-zinc-200">{data.total_photos}</span>
+                {t('vault_total_media', 'Foto & Media')}: <span className="font-semibold text-zinc-200">{data.total_photos}</span>
               </div>
             </div>
           </div>
@@ -298,7 +296,7 @@ export function StorageView() {
           <Loader2 className="w-5 h-5 text-blue-400 animate-spin shrink-0" />
           <div className="flex-1">
             <div className="flex justify-between text-xs text-blue-300 font-medium mb-1">
-              <span>Mengunggah berkas ke Storage Vault...</span>
+              <span>{t('vault_uploading', 'Mengunggah berkas ke Storage Vault...')}</span>
               <span>{uploadProgress}%</span>
             </div>
             <div className="w-full bg-blue-950/60 rounded-full h-2 overflow-hidden">
@@ -315,7 +313,7 @@ export function StorageView() {
       {isDragOver && (
         <div className="border-2 border-dashed border-blue-500 bg-blue-500/10 rounded-2xl p-8 text-center text-blue-300 flex flex-col items-center justify-center space-y-2">
           <Upload className="w-8 h-8 text-blue-400 animate-bounce" />
-          <p className="text-sm font-semibold">Lepaskan file di sini untuk langsung mengunggah ke {currentPath || "Root"}</p>
+          <p className="text-sm font-semibold">{t('vault_drop_zone', 'Lepaskan file di sini untuk langsung mengunggah')}</p>
         </div>
       )}
 
@@ -352,7 +350,7 @@ export function StorageView() {
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Cari file..."
+              placeholder={t('search_placeholder', 'Cari file...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-zinc-850 border border-zinc-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500 w-32 sm:w-44"
@@ -373,11 +371,11 @@ export function StorageView() {
             onChange={(e) => setFilterType(e.target.value)}
             className="bg-zinc-850 border border-zinc-700/80 rounded-xl px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-blue-500 cursor-pointer"
           >
-            <option value="all">Semua Tipe</option>
-            <option value="photos">🖼️ Foto Saja</option>
-            <option value="videos">🎬 Video Saja</option>
-            <option value="docs">📄 Dokumen</option>
-            <option value="backups">📦 Backup / ZIP</option>
+            <option value="all">{t('vault_filter_all', 'Semua Tipe')}</option>
+            <option value="photos">{t('vault_filter_photos', '🖼️ Foto Saja')}</option>
+            <option value="videos">{t('vault_filter_videos', '🎬 Video Saja')}</option>
+            <option value="docs">{t('vault_filter_docs', '📄 Dokumen')}</option>
+            <option value="backups">{t('vault_filter_backups', '📦 Backup / ZIP')}</option>
           </select>
 
           {/* Toggle View Mode */}
@@ -387,7 +385,7 @@ export function StorageView() {
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "grid" ? "bg-zinc-700 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="Gallery Mode"
+              title={t('vault_view_gallery', 'Gallery Mode')}
             >
               <Grid className="w-3.5 h-3.5" />
             </button>
@@ -396,7 +394,7 @@ export function StorageView() {
               className={`p-1.5 rounded-lg transition-all ${
                 viewMode === "list" ? "bg-zinc-700 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="List Mode"
+              title={t('vault_view_list', 'List Mode')}
             >
               <List className="w-3.5 h-3.5" />
             </button>
@@ -408,16 +406,16 @@ export function StorageView() {
       {loading ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-3 text-zinc-500">
           <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
-          <p className="text-xs">Memuat berkas Storage Vault...</p>
+          <p className="text-xs">{t('loading', 'Memuat berkas Storage Vault...')}</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="bg-[#121215] border border-zinc-800/80 rounded-2xl py-16 px-4 text-center">
           <div className="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/50 flex items-center justify-center mx-auto mb-3 text-zinc-500">
             <Folder className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-zinc-300">Folder ini masih kosong</h3>
+          <h3 className="text-sm font-semibold text-zinc-300">{t('vault_empty_title', 'Folder ini masih kosong')}</h3>
           <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-            Tarik dan lepas file foto atau dokumen ke sini, atau klik tombol Unggah di atas.
+            {t('vault_empty_desc', 'Tarik dan lepas file foto atau dokumen ke sini, atau klik tombol Unggah di atas.')}
           </p>
         </div>
       ) : viewMode === "grid" ? (
@@ -443,7 +441,7 @@ export function StorageView() {
                           setRenameValue(item.name);
                         }}
                         className="p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg"
-                        title="Rename"
+                        title={t('edit', 'Ubah Nama')}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -453,7 +451,7 @@ export function StorageView() {
                           setDeleteTarget(item);
                         }}
                         className="p-1 text-zinc-400 hover:text-red-400 hover:bg-zinc-700/50 rounded-lg"
-                        title="Hapus"
+                        title={t('delete', 'Hapus')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -502,7 +500,7 @@ export function StorageView() {
                           openLightbox(item);
                         }}
                         className="p-2 bg-zinc-800/90 hover:bg-zinc-700 text-zinc-100 rounded-xl text-xs backdrop-blur-sm shadow-md"
-                        title="Lihat Foto"
+                        title={t('view_details', 'Lihat Media')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -511,7 +509,7 @@ export function StorageView() {
                         download
                         onClick={(e) => e.stopPropagation()}
                         className="p-2 bg-zinc-800/90 hover:bg-zinc-700 text-zinc-100 rounded-xl text-xs backdrop-blur-sm shadow-md"
-                        title="Download"
+                        title={t('download', 'Unduh')}
                       >
                         <Download className="w-4 h-4" />
                       </a>
@@ -534,7 +532,7 @@ export function StorageView() {
                     <button
                       onClick={() => setDeleteTarget(item)}
                       className="opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-red-400 rounded-lg transition-opacity"
-                      title="Hapus"
+                      title={t('delete', 'Hapus')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -564,7 +562,7 @@ export function StorageView() {
                       href={item.download_url}
                       download
                       className="p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg"
-                      title="Download"
+                      title={t('download', 'Unduh')}
                     >
                       <Download className="w-3.5 h-3.5" />
                     </a>
@@ -574,14 +572,14 @@ export function StorageView() {
                         setRenameValue(item.name);
                       }}
                       className="p-1 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/50 rounded-lg"
-                      title="Rename"
+                      title={t('edit', 'Ubah Nama')}
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(item)}
                       className="p-1 text-zinc-400 hover:text-red-400 hover:bg-zinc-700/50 rounded-lg"
-                      title="Hapus"
+                      title={t('delete', 'Hapus')}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -607,11 +605,11 @@ export function StorageView() {
             <table className="w-full text-left text-xs text-zinc-300">
               <thead className="bg-zinc-850/60 text-zinc-400 border-b border-zinc-800 font-medium">
                 <tr>
-                  <th className="py-3 px-4">Nama Berkas</th>
-                  <th className="py-3 px-4">Ukuran</th>
-                  <th className="py-3 px-4">Tipe</th>
-                  <th className="py-3 px-4">Terakhir Diubah</th>
-                  <th className="py-3 px-4 text-right">Aksi</th>
+                  <th className="py-3 px-4">{t('vault_col_name', 'Nama Berkas')}</th>
+                  <th className="py-3 px-4">{t('vault_col_size', 'Ukuran')}</th>
+                  <th className="py-3 px-4">{t('category', 'Tipe')}</th>
+                  <th className="py-3 px-4">{t('vault_col_mtime', 'Terakhir Diubah')}</th>
+                  <th className="py-3 px-4 text-right">{t('actions', 'Aksi')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60">
@@ -649,7 +647,7 @@ export function StorageView() {
                           href={item.download_url}
                           download
                           className="inline-block p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
-                          title="Download"
+                          title={t('download', 'Unduh')}
                         >
                           <Download className="w-3.5 h-3.5" />
                         </a>
@@ -660,14 +658,14 @@ export function StorageView() {
                           setRenameValue(item.name);
                         }}
                         className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
-                        title="Rename"
+                        title={t('edit', 'Ubah')}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(item)}
                         className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition-colors"
-                        title="Hapus"
+                        title={t('delete', 'Hapus')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -707,7 +705,7 @@ export function StorageView() {
                 className="p-2 bg-zinc-800/80 hover:bg-zinc-700 text-white rounded-xl text-xs transition-colors flex items-center space-x-1.5"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download</span>
+                <span className="hidden sm:inline">{t('download', 'Unduh')}</span>
               </a>
               <button
                 onClick={() => setLightboxIndex(null)}
@@ -766,8 +764,8 @@ export function StorageView() {
             className="text-xs text-zinc-400 flex items-center space-x-4 bg-zinc-900/60 px-4 py-1.5 rounded-full border border-zinc-800/80"
             onClick={(e) => e.stopPropagation()}
           >
-            <span>Ukuran: {mediaItems[lightboxIndex].size_formatted}</span>
-            <span>Diunggah: {mediaItems[lightboxIndex].mtime}</span>
+            <span>{t('vault_col_size', 'Ukuran')}: {mediaItems[lightboxIndex].size_formatted}</span>
+            <span>{t('vault_col_mtime', 'Diunggah')}: {mediaItems[lightboxIndex].mtime}</span>
           </div>
         </div>
       )}
@@ -778,7 +776,7 @@ export function StorageView() {
           <div className="bg-[#18181d] border border-zinc-700/80 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <h3 className="text-sm font-bold text-white mb-1 flex items-center gap-2">
               <FolderPlus className="w-4 h-4 text-blue-400" />
-              Buat Folder Baru
+              {t('vault_create_folder_title', 'Buat Folder Baru')}
             </h3>
             <p className="text-xs text-zinc-400 mb-4">
               Lokasi: <code className="text-zinc-300">{currentPath || "Root Vault"}</code>
@@ -788,7 +786,7 @@ export function StorageView() {
               <input
                 type="text"
                 autoFocus
-                placeholder="Nama folder (misal: Liburan 2026)"
+                placeholder={t('vault_create_folder_label', 'Nama folder (misal: Liburan 2026)')}
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
@@ -799,14 +797,14 @@ export function StorageView() {
                   onClick={() => setIsCreateFolderOpen(false)}
                   className="px-3.5 py-1.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
                 >
-                  Batal
+                  {t('cancel', 'Batal')}
                 </button>
                 <button
                   type="submit"
                   disabled={!newFolderName.trim()}
                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm"
                 >
-                  Buat
+                  {t('create', 'Buat')}
                 </button>
               </div>
             </form>
@@ -820,10 +818,10 @@ export function StorageView() {
           <div className="bg-[#18181d] border border-zinc-700/80 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <h3 className="text-sm font-bold text-white mb-1 flex items-center gap-2">
               <Edit2 className="w-4 h-4 text-blue-400" />
-              Ubah Nama
+              {t('vault_rename_title', 'Ubah Nama')}
             </h3>
             <p className="text-xs text-zinc-400 mb-4">
-              Nama saat ini: <span className="text-zinc-200 font-medium">{renameTarget.name}</span>
+              {t('vault_col_name', 'Nama saat ini')}: <span className="text-zinc-200 font-medium">{renameTarget.name}</span>
             </p>
 
             <form onSubmit={handleRename} className="space-y-4">
@@ -840,14 +838,14 @@ export function StorageView() {
                   onClick={() => setRenameTarget(null)}
                   className="px-3.5 py-1.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
                 >
-                  Batal
+                  {t('cancel', 'Batal')}
                 </button>
                 <button
                   type="submit"
                   disabled={!renameValue.trim()}
                   className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm"
                 >
-                  Simpan
+                  {t('save', 'Simpan')}
                 </button>
               </div>
             </form>
@@ -864,13 +862,13 @@ export function StorageView() {
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Konfirmasi Hapus</h3>
-                <p className="text-xs text-zinc-400">Tindakan ini tidak dapat dibatalkan.</p>
+                <h3 className="text-sm font-bold text-white">{t('confirm_delete_title', 'Konfirmasi Hapus')}</h3>
+                <p className="text-xs text-zinc-400">{t('confirm_delete_desc', 'Tindakan ini tidak dapat dibatalkan.')}</p>
               </div>
             </div>
 
             <p className="text-xs text-zinc-300 mb-5">
-              Apakah kamu yakin ingin menghapus {deleteTarget.is_dir ? "folder" : "file"}{" "}
+              {t('vault_delete_confirm', 'Apakah kamu yakin ingin menghapus')} {deleteTarget.is_dir ? "folder" : "file"}{" "}
               <strong className="text-white font-semibold">"{deleteTarget.name}"</strong>?
             </p>
 
@@ -880,14 +878,14 @@ export function StorageView() {
                 onClick={() => setDeleteTarget(null)}
                 className="px-3.5 py-1.5 rounded-xl text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
               >
-                Batal
+                {t('cancel', 'Batal')}
               </button>
               <button
                 type="button"
                 onClick={handleDelete}
                 className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold shadow-sm"
               >
-                Hapus
+                {t('delete', 'Hapus')}
               </button>
             </div>
           </div>

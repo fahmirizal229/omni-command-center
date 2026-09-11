@@ -20,23 +20,10 @@ import {
 import Sortable from 'sortablejs';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
-
-const TASK_COLUMNS = [
-  { id: 'backlog', label: 'Backlog / Ide', icon: Lightbulb, color: 'border-zinc-800 bg-[#121215] text-zinc-400' },
-  { id: 'todo', label: 'To Do', icon: Circle, color: 'border-zinc-800 bg-[#121215] text-zinc-300' },
-  { id: 'in_progress', label: 'In Progress', icon: Clock, color: 'border-zinc-800 bg-[#121215] text-zinc-200' },
-  { id: 'review', label: 'Review / Hold', icon: PauseCircle, color: 'border-zinc-800 bg-[#121215] text-zinc-400' },
-  { id: 'done', label: 'Selesai', icon: CheckCircle2, color: 'border-zinc-800 bg-[#121215] text-emerald-400' },
-];
-
-const PRIORITY_CONFIG = {
-  urgent: { label: 'Urgent', badge: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: Flame },
-  high: { label: 'High', badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: Zap },
-  medium: { label: 'Medium', badge: 'bg-zinc-800 text-zinc-300 border-zinc-700', icon: Circle },
-  low: { label: 'Low', badge: 'bg-zinc-900 text-zinc-400 border-zinc-800', icon: Circle },
-};
+import { useLanguage } from '../context/LanguageContext';
 
 export function TasksView({ tasksData, onRefresh }) {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeMobileCol, setActiveMobileCol] = useState('todo');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -45,6 +32,21 @@ export function TasksView({ tasksData, onRefresh }) {
   const { showToast } = useToast();
 
   const columnsRef = useRef({});
+
+  const TASK_COLUMNS = [
+    { id: 'backlog', label: t('tasks_col_backlog', 'Backlog / Ide'), icon: Lightbulb, color: 'border-zinc-800 bg-[#121215] text-zinc-400' },
+    { id: 'todo', label: t('tasks_col_todo', 'To Do'), icon: Circle, color: 'border-zinc-800 bg-[#121215] text-zinc-300' },
+    { id: 'in_progress', label: t('tasks_col_in_progress', 'In Progress'), icon: Clock, color: 'border-zinc-800 bg-[#121215] text-zinc-200' },
+    { id: 'review', label: t('tasks_col_review', 'Review / Hold'), icon: PauseCircle, color: 'border-zinc-800 bg-[#121215] text-zinc-400' },
+    { id: 'done', label: t('tasks_col_done', 'Selesai'), icon: CheckCircle2, color: 'border-zinc-800 bg-[#121215] text-emerald-400' },
+  ];
+
+  const PRIORITY_CONFIG = {
+    urgent: { label: t('tasks_priority_urgent', 'Urgent'), badge: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: Flame },
+    high: { label: t('tasks_priority_high', 'High'), badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: Zap },
+    medium: { label: t('tasks_priority_medium', 'Medium'), badge: 'bg-zinc-800 text-zinc-300 border-zinc-700', icon: Circle },
+    low: { label: t('tasks_priority_low', 'Low'), badge: 'bg-zinc-900 text-zinc-400 border-zinc-800', icon: Circle },
+  };
 
   const columns = tasksData?.columns || {
     backlog: [],
@@ -80,10 +82,10 @@ export function TasksView({ tasksData, onRefresh }) {
 
             try {
               await api.updateTask(taskId, { status: targetStatus });
-              showToast(`Status tugas dipindahkan ke "${targetStatus}".`, 'success', 'Tugas Diperbarui');
+              showToast(t('tasks_status_updated', 'Status tugas berhasil diperbarui.'), 'success', t('tasks_updated_title', 'Tugas Diperbarui'));
               if (onRefresh) onRefresh();
             } catch (err) {
-              showToast('Gagal memindahkan status tugas.', 'error', 'Error');
+              showToast(t('tasks_error_update', 'Gagal memindahkan status tugas.'), 'error', 'Error');
               if (onRefresh) onRefresh();
             }
           },
@@ -95,16 +97,16 @@ export function TasksView({ tasksData, onRefresh }) {
     return () => {
       sortables.forEach((s) => s.destroy());
     };
-  }, [tasksData, onRefresh, showToast]);
+  }, [tasksData, onRefresh, showToast, t]);
 
   const handleDeleteTask = async (taskId, title) => {
-    if (!confirm(`Hapus tugas "${title}"?`)) return;
+    if (!confirm(t('tasks_delete_confirm', `Hapus tugas "${title}"?`))) return;
     try {
       await api.deleteTask(taskId);
-      showToast('Tugas berhasil dihapus.', 'info', 'Tugas Dihapus');
+      showToast(t('tasks_deleted_msg', 'Tugas berhasil dihapus.'), 'info', t('tasks_deleted_title', 'Tugas Dihapus'));
       if (onRefresh) onRefresh();
     } catch {
-      showToast('Gagal menghapus tugas.', 'error', 'Error');
+      showToast(t('tasks_error_delete', 'Gagal menghapus tugas.'), 'error', 'Error');
     }
   };
 
@@ -119,11 +121,11 @@ export function TasksView({ tasksData, onRefresh }) {
             onClick={() => setSelectedCategory('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
               selectedCategory === 'all'
-                ? 'bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 border border-transparent'
+                ? 'bg-zinc-100 text-zinc-900 font-semibold shadow-sm'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
             }`}
           >
-            Semua Kategori
+            {t('tasks_filter_all_categories', 'Semua Kategori')}
           </button>
           {categories.map((cat) => (
             <button
@@ -132,8 +134,8 @@ export function TasksView({ tasksData, onRefresh }) {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 selectedCategory === cat
-                  ? 'bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 border border-transparent'
+                  ? 'bg-zinc-100 text-zinc-900 font-semibold shadow-sm'
+                  : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800'
               }`}
             >
               {cat}
@@ -148,149 +150,156 @@ export function TasksView({ tasksData, onRefresh }) {
             setInitialStatusForCreate('todo');
             setIsCreateModalOpen(true);
           }}
-          className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-xs rounded-lg transition-all flex items-center justify-center space-x-1.5 shrink-0 shadow-sm"
+          className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 text-xs font-semibold transition-all shadow-sm flex items-center justify-center space-x-1.5 shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>Tambah Tugas</span>
+          <span>{t('tasks_new_btn', 'Tugas Baru')}</span>
         </button>
       </div>
 
-      {/* Mobile Column Switcher Tab */}
-      <div className="sm:hidden flex items-center space-x-1 overflow-x-auto custom-scrollbar pb-1">
+      {/* Mobile Column Switcher */}
+      <div className="md:hidden flex items-center space-x-1 bg-[#121215] p-1.5 rounded-lg border border-zinc-800 overflow-x-auto">
         {TASK_COLUMNS.map((col) => {
-          const count = (columns[col.id] || []).length;
+          const count = columns[col.id]?.length || 0;
           const isActive = activeMobileCol === col.id;
           return (
             <button
               key={col.id}
+              type="button"
               onClick={() => setActiveMobileCol(col.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap flex items-center space-x-1.5 ${
-                isActive ? 'bg-zinc-800 text-zinc-100 border border-zinc-700' : 'bg-zinc-950 text-zinc-400 border border-zinc-800'
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 whitespace-nowrap shrink-0 ${
+                isActive ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <span>{col.label.split(' ')[0]}</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-900 text-zinc-400 font-mono">{count}</span>
+              <span>{col.label}</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-900 font-mono">
+                {count}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Kanban Board Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Kanban Board Columns Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 items-start">
         {TASK_COLUMNS.map((col) => {
-          const colTasks = (columns[col.id] || []).filter((task) => {
-            if (selectedCategory === 'all') return true;
-            return task.category === selectedCategory;
-          });
+          const rawTasks = columns[col.id] || [];
+          const taskList =
+            selectedCategory === 'all'
+              ? rawTasks
+              : rawTasks.filter((t) => t.category === selectedCategory);
 
-          const IconComponent = col.icon;
-          const isHiddenOnMobile = activeMobileCol !== col.id;
+          const isMobileVisible = activeMobileCol === col.id;
 
           return (
             <div
               key={col.id}
-              className={`flex flex-col rounded-xl bg-[#121215] border border-zinc-800 p-3.5 space-y-3 min-h-[500px] ${
-                isHiddenOnMobile ? 'hidden sm:flex' : 'flex'
+              className={`rounded-xl bg-[#121215] border border-zinc-800 p-3 flex flex-col min-h-[500px] ${
+                isMobileVisible ? 'block' : 'hidden md:flex'
               }`}
             >
               {/* Column Header */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-zinc-800/80">
+              <div className="flex items-center justify-between pb-3 mb-2 border-b border-zinc-800/80 px-1">
                 <div className="flex items-center space-x-2">
-                  <IconComponent className="w-3.5 h-3.5 text-zinc-400" />
-                  <h4 className="font-semibold text-zinc-200 text-xs tracking-tight">{col.label}</h4>
+                  <col.icon className="w-3.5 h-3.5 text-zinc-400" />
+                  <h4 className="font-semibold text-zinc-200 text-xs tracking-wide">{col.label}</h4>
                 </div>
-                <span className="px-2 py-0.5 rounded-md bg-zinc-950 text-zinc-400 font-mono text-[11px] font-semibold border border-zinc-800">
-                  {colTasks.length}
+                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  {taskList.length}
                 </span>
               </div>
 
-              {/* Task Cards Dropzone */}
+              {/* Task Cards Dropzone Area */}
               <div
                 ref={(el) => (columnsRef.current[col.id] = el)}
                 data-status={col.id}
-                className="flex-1 space-y-2.5 overflow-y-auto custom-scrollbar min-h-[200px]"
+                className="flex-1 space-y-2.5 overflow-y-auto custom-scrollbar pr-0.5 min-h-[120px]"
               >
-                {colTasks.map((task) => {
-                  const prio = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
-                  const PrioIcon = prio.icon;
+                {taskList.length === 0 ? (
+                  <div className="h-28 flex flex-col items-center justify-center text-center p-3 border border-dashed border-zinc-800/60 rounded-lg text-zinc-600 text-[11px]">
+                    <span>{t('tasks_empty_column', 'Belum ada tugas')}</span>
+                  </div>
+                ) : (
+                  taskList.map((task) => {
+                    const priorityConfig = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
+                    const PriorityIcon = priorityConfig.icon;
 
-                  return (
-                    <div
-                      key={task.id}
-                      data-task-id={task.id}
-                      className="task-card group relative p-3 rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 transition-all duration-200 cursor-grab active:cursor-grabbing shadow-sm space-y-2.5"
-                    >
-                      {/* Card Header & Priority */}
-                      <div className="flex items-start justify-between gap-2">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-md font-medium uppercase tracking-wider border flex items-center gap-1 ${prio.badge}`}
-                        >
-                          <PrioIcon className="w-2.5 h-2.5" />
-                          <span>{prio.label}</span>
-                        </span>
-
-                        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingTask(task);
-                            }}
-                            className="p-1 text-zinc-400 hover:text-zinc-200 transition-colors"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTask(task.id, task.title);
-                            }}
-                            className="p-1 text-zinc-400 hover:text-rose-400 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                    return (
+                      <div
+                        key={task.id}
+                        data-task-id={task.id}
+                        className="task-card group relative rounded-lg bg-zinc-950 border border-zinc-800 hover:border-zinc-700 p-3.5 transition-all shadow-sm cursor-grab active:cursor-grabbing space-y-2.5"
+                      >
+                        {/* Title & Actions */}
+                        <div className="flex items-start justify-between gap-2">
+                          <h5 className="font-medium text-zinc-100 text-xs leading-snug break-words flex-1">
+                            {task.title}
+                          </h5>
+                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => setEditingTask(task)}
+                              className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTask(task.id, task.title)}
+                              className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-rose-400 rounded"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Card Title & Description */}
-                      <div>
-                        <h5 className="font-medium text-zinc-100 text-xs leading-snug">{task.title}</h5>
+                        {/* Description (if any) */}
                         {task.description && (
-                          <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                          <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
                             {task.description}
                           </p>
                         )}
-                      </div>
 
-                      {/* Card Footer: Category & Due Date */}
-                      <div className="flex items-center justify-between pt-1 border-t border-zinc-900 text-[10px] text-zinc-400 font-mono">
-                        <span className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
-                          {task.category || 'Personal'}
-                        </span>
-                        {task.due_date && (
-                          <span className="flex items-center gap-1 text-zinc-400">
-                            <Calendar className="w-3 h-3 text-zinc-500" />
-                            <span>{task.due_date}</span>
+                        {/* Metadata Footer: Category, Due Date, Priority */}
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 text-[10px]">
+                          <div className="flex items-center space-x-1.5 text-zinc-400">
+                            {task.category && (
+                              <span className="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 font-medium">
+                                {task.category}
+                              </span>
+                            )}
+                            {task.due_date && (
+                              <span className="flex items-center space-x-1 font-mono text-zinc-400">
+                                <Calendar className="w-2.5 h-2.5" />
+                                <span>{task.due_date}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          <span
+                            className={`px-1.5 py-0.5 rounded border text-[9px] font-semibold flex items-center space-x-1 ${priorityConfig.badge}`}
+                          >
+                            <PriorityIcon className="w-2.5 h-2.5" />
+                            <span>{priorityConfig.label}</span>
                           </span>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
 
-              {/* Add Task Quick Button per Column */}
+              {/* Quick Add Button at bottom of column */}
               <button
                 type="button"
                 onClick={() => {
                   setInitialStatusForCreate(col.id);
                   setIsCreateModalOpen(true);
                 }}
-                className="w-full py-2 rounded-lg bg-zinc-950/40 hover:bg-zinc-950/80 border border-dashed border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs font-medium transition-all flex items-center justify-center space-x-1"
+                className="mt-2 w-full py-1.5 rounded-lg border border-dashed border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 text-xs font-medium transition-all flex items-center justify-center space-x-1"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Tambah Tugas</span>
+                <Plus className="w-3 h-3" />
+                <span>{t('create', 'Tambah')}</span>
               </button>
             </div>
           );
@@ -329,6 +338,7 @@ export function TasksView({ tasksData, onRefresh }) {
 }
 
 function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], onClose, onSuccess }) {
+  const { t } = useLanguage();
   const isEditing = Boolean(task);
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
@@ -349,10 +359,10 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
     try {
       if (isEditing) {
         await api.updateTask(task.id, payload);
-        showToast('Tugas berhasil diperbarui!', 'success', 'Berhasil');
+        showToast(t('tasks_saved_msg', 'Tugas berhasil diperbarui!'), 'success', t('save', 'Berhasil'));
       } else {
         await api.createTask(payload);
-        showToast('Tugas baru berhasil ditambahkan!', 'success', 'Tugas Dibuat');
+        showToast(t('tasks_created_msg', 'Tugas baru berhasil ditambahkan!'), 'success', t('create', 'Tugas Dibuat'));
       }
       onSuccess();
     } catch (err) {
@@ -367,7 +377,7 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
       <div className="max-w-md w-full bg-[#121215] border border-zinc-800 rounded-xl p-6 shadow-2xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <h3 className="font-semibold text-zinc-100 text-base">
-            {isEditing ? 'Edit Tugas' : 'Tambah Tugas Baru'}
+            {isEditing ? t('tasks_modal_edit_title', 'Edit Tugas') : t('tasks_modal_create_title', 'Tambah Tugas Baru')}
           </h3>
           <button type="button" onClick={onClose} className="text-zinc-400 hover:text-zinc-100 transition-colors">
             <X className="w-5 h-5" />
@@ -376,7 +386,7 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
 
         <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
           <div>
-            <label className="block font-medium text-zinc-300 mb-1">Judul Tugas</label>
+            <label className="block font-medium text-zinc-300 mb-1">{t('tasks_form_title', 'Judul Tugas')}</label>
             <input
               type="text"
               required
@@ -388,7 +398,7 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
           </div>
 
           <div>
-            <label className="block font-medium text-zinc-300 mb-1">Deskripsi / Catatan</label>
+            <label className="block font-medium text-zinc-300 mb-1">{t('tasks_form_desc', 'Deskripsi / Catatan')}</label>
             <textarea
               rows={3}
               value={description}
@@ -400,38 +410,38 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-zinc-300 mb-1">Status Kolom</label>
+              <label className="block font-medium text-zinc-300 mb-1">{t('status', 'Status Kolom')}</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-zinc-500"
               >
-                <option value="backlog">Backlog / Ide</option>
-                <option value="todo">To Do</option>
-                <option value="in_progress">In Progress</option>
-                <option value="review">Review / Hold</option>
-                <option value="done">Selesai</option>
+                <option value="backlog">{t('tasks_col_backlog', 'Backlog / Ide')}</option>
+                <option value="todo">{t('tasks_col_todo', 'To Do')}</option>
+                <option value="in_progress">{t('tasks_col_in_progress', 'In Progress')}</option>
+                <option value="review">{t('tasks_col_review', 'Review / Hold')}</option>
+                <option value="done">{t('tasks_col_done', 'Selesai')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-300 mb-1">Prioritas</label>
+              <label className="block font-medium text-zinc-300 mb-1">{t('priority', 'Prioritas')}</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-zinc-500"
               >
-                <option value="low">Rendah (Low)</option>
-                <option value="medium">Sedang (Medium)</option>
-                <option value="high">Tinggi (High)</option>
-                <option value="urgent">Mendesak (Urgent)</option>
+                <option value="low">{t('tasks_priority_low', 'Rendah (Low)')}</option>
+                <option value="medium">{t('tasks_priority_medium', 'Sedang (Medium)')}</option>
+                <option value="high">{t('tasks_priority_high', 'Tinggi (High)')}</option>
+                <option value="urgent">{t('tasks_priority_urgent', 'Mendesak (Urgent)')}</option>
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-zinc-300 mb-1">Kategori</label>
+              <label className="block font-medium text-zinc-300 mb-1">{t('category', 'Kategori')}</label>
               <input
                 type="text"
                 list="category-options"
@@ -448,7 +458,7 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-300 mb-1">Tenggat Waktu</label>
+              <label className="block font-medium text-zinc-300 mb-1">{t('tasks_form_due', 'Tenggat Waktu')}</label>
               <input
                 type="date"
                 value={dueDate}
@@ -464,14 +474,14 @@ function TaskFormModal({ isOpen, task, initialStatus = 'todo', categories = [], 
               onClick={onClose}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-lg transition-colors"
             >
-              Batal
+              {t('cancel', 'Batal')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Buat Tugas'}
+              {loading ? t('loading', 'Menyimpan...') : isEditing ? t('save', 'Simpan') : t('create', 'Buat')}
             </button>
           </div>
         </form>

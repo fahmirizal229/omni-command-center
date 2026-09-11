@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Brain, Search, BookOpen, Network, FileText, Sparkles, Folder, Tag, Layers, Share2 } from 'lucide-react';
 import { api } from '../api';
+import { useLanguage } from '../context/LanguageContext';
 
 export function SecondBrainView({ brainData }) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
@@ -43,24 +45,26 @@ export function SecondBrainView({ brainData }) {
       <div className="p-6 rounded-xl bg-[#121215] border border-zinc-800 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h3 className="text-xl font-bold text-zinc-100 tracking-tight">Second Brain & Catatan</h3>
+            <h3 className="text-xl font-bold text-zinc-100 tracking-tight">
+              {t('brain_title', 'Second Brain & Catatan')}
+            </h3>
             <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
-              Catatan Obsidian Vault lokal, aturan preferensi, dan jaringan relasi pengetahuan.
+              {t('brain_subtitle', 'Catatan Obsidian Vault lokal, aturan preferensi, dan jaringan relasi pengetahuan.')}
             </p>
           </div>
 
           <div className="flex items-center space-x-2 text-xs">
             <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-center min-w-[85px]">
               <p className="text-xl font-bold text-zinc-100 font-mono">{brainData?.total_notes || notesList.length}</p>
-              <p className="text-[10px] text-zinc-500">Total Catatan</p>
+              <p className="text-[10px] text-zinc-500">{t('brain_stat_total_notes', 'Total Catatan')}</p>
             </div>
             <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-center min-w-[85px]">
               <p className="text-xl font-bold text-zinc-300 font-mono">{graph.entities_count || 0}</p>
-              <p className="text-[10px] text-zinc-500">Entitas Graf</p>
+              <p className="text-[10px] text-zinc-500">{t('brain_stat_entities', 'Entitas Graf')}</p>
             </div>
             <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-center min-w-[85px]">
               <p className="text-xl font-bold text-zinc-300 font-mono">{graph.relations_count || 0}</p>
-              <p className="text-[10px] text-zinc-500">Relasi</p>
+              <p className="text-[10px] text-zinc-500">{t('brain_stat_relations', 'Relasi')}</p>
             </div>
           </div>
         </div>
@@ -75,7 +79,7 @@ export function SecondBrainView({ brainData }) {
               setSearchQuery(e.target.value);
               if (!e.target.value) setSearchResults(null);
             }}
-            placeholder="Cari catatan Obsidian (misal: persona, rules, server)..."
+            placeholder={t('brain_search_placeholder', 'Cari catatan Obsidian (misal: persona, rules, server)...')}
             className="w-full pl-10 pr-24 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
           />
           <button
@@ -83,7 +87,7 @@ export function SecondBrainView({ brainData }) {
             disabled={searching}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold text-xs rounded-md transition-colors shadow-sm"
           >
-            {searching ? 'Mencari...' : 'Cari'}
+            {searching ? t('loading', 'Mencari...') : t('search_placeholder', 'Cari')}
           </button>
         </form>
       </div>
@@ -94,73 +98,70 @@ export function SecondBrainView({ brainData }) {
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-zinc-200 text-xs flex items-center gap-1.5">
               <Network className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Entitas Pengetahuan Utama</span>
+              <span>{t('brain_top_entities', 'Entitas Pengetahuan Utama')}</span>
             </h4>
             <span className="text-[10px] text-zinc-500 font-mono">Knowledge Graph</span>
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2 pt-1">
             {topEntities.map((ent, idx) => (
               <span
                 key={idx}
-                className="px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 font-mono flex items-center space-x-1.5"
+                className="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-xs flex items-center space-x-1.5 hover:border-zinc-700 transition-colors"
               >
-                <span className="text-zinc-200 font-medium">[[{ent.name}]]</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700 font-bold">
-                  {ent.connection_count}
-                </span>
+                <span className="font-medium text-zinc-200">{ent.name}</span>
+                <span className="text-[10px] text-zinc-500 font-mono">({ent.connection_count || 0})</span>
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Notes Grid */}
+      {/* Note Grid */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-zinc-200 text-sm flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-zinc-400" />
-          <span>
-            {searchResults !== null
-              ? `Hasil Pencarian (${notesList.length} Catatan)`
-              : `Daftar Catatan & Aturan (${notesList.length})`}
-          </span>
+        <h4 className="font-semibold text-zinc-200 text-xs flex items-center gap-1.5 px-1">
+          <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+          <span>{t('brain_recent_notes', 'Catatan & Dokumen Obsidian')}</span>
         </h4>
 
-        {notesList.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {notesList.length === 0 ? (
+          <div className="p-12 text-center border border-dashed border-zinc-800 rounded-xl text-zinc-500 text-xs space-y-1">
+            <p>{t('brain_no_notes_found', 'Tidak ada catatan ditemukan.')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {notesList.map((note, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-xl bg-[#121215] border border-zinc-800 hover:border-zinc-700 hover:bg-[#16161a] transition-all space-y-3 flex flex-col justify-between"
+                className="group rounded-xl bg-[#121215] border border-zinc-800 hover:border-zinc-700 p-4 space-y-3 transition-all flex flex-col justify-between"
               >
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono flex items-center gap-1">
-                      <Folder className="w-2.5 h-2.5" />
-                      <span>{note.folder || 'Vault'}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono flex items-center space-x-1">
+                      <Folder className="w-2.5 h-2.5 text-zinc-500" />
+                      <span>{note.folder}</span>
                     </span>
-                    <span className="text-[10px] text-zinc-500 font-mono">{note.modified_at || note.modified || ''}</span>
+                    <span className="text-[10px] text-zinc-500 font-mono">{note.modified_at}</span>
                   </div>
 
-                  <h5 className="font-semibold text-zinc-100 text-sm leading-snug">{note.title || note.filename}</h5>
+                  <h5 className="font-bold text-zinc-100 text-xs group-hover:text-white transition-colors flex items-center space-x-1.5">
+                    <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    <span className="truncate">{note.title}</span>
+                  </h5>
 
-                  {(note.preview || note.snippet) && (
-                    <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">
-                      {note.preview || note.snippet}
+                  {note.preview && (
+                    <p className="text-[11px] text-zinc-400 line-clamp-3 leading-relaxed">
+                      {note.preview}
                     </p>
                   )}
                 </div>
 
-                <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                <div className="pt-2 border-t border-zinc-900 text-[10px] text-zinc-500 font-mono flex justify-between">
                   <span>{note.filename}</span>
-                  {note.size_bytes && <span>{(note.size_bytes / 1024).toFixed(1)} KB</span>}
+                  <span>{Math.round(note.size_bytes / 1024)} KB</span>
                 </div>
               </div>
             ))}
-          </div>
-        ) : (
-          <div className="text-xs text-zinc-500 py-8 text-center bg-[#121215] rounded-xl border border-zinc-800">
-            Tidak ada catatan yang cocok dengan pencarian "{searchQuery}".
           </div>
         )}
       </div>

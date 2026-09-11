@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { X, KeyRound, Lock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export function ChangePasswordModal({ isOpen, onClose }) {
+  const { t } = useLanguage();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,7 +22,7 @@ export function ChangePasswordModal({ isOpen, onClose }) {
     setSuccess(false);
 
     if (newPassword !== confirmPassword) {
-      setError('Konfirmasi password baru tidak cocok.');
+      setError(t('pwd_modal_match_error', 'Konfirmasi password baru tidak cocok.'));
       return;
     }
 
@@ -33,7 +35,7 @@ export function ChangePasswordModal({ isOpen, onClose }) {
     try {
       await api.changePassword(oldPassword, newPassword);
       setSuccess(true);
-      showToast('Password master dashboard berhasil diperbarui!', 'success', 'Password Diubah');
+      showToast(t('pwd_modal_submit', 'Password master dashboard berhasil diperbarui!'), 'success', 'Success');
       setTimeout(() => {
         onClose();
         setOldPassword('');
@@ -43,7 +45,7 @@ export function ChangePasswordModal({ isOpen, onClose }) {
       }, 1500);
     } catch (err) {
       setError(err.message || 'Gagal mengubah password. Pastikan password lama benar.');
-      showToast(err.message || 'Password lama salah.', 'error', 'Gagal');
+      showToast(err.message || 'Password lama salah.', 'error', 'Error');
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export function ChangePasswordModal({ isOpen, onClose }) {
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <div className="flex items-center space-x-2">
             <KeyRound className="w-4 h-4 text-zinc-300" />
-            <h3 className="font-semibold text-zinc-100 text-base">Ganti Password Dashboard</h3>
+            <h3 className="font-semibold text-zinc-100 text-base">{t('pwd_modal_title', 'Ganti Password Master')}</h3>
           </div>
           <button
             type="button"
@@ -76,13 +78,13 @@ export function ChangePasswordModal({ isOpen, onClose }) {
         {success && (
           <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Password berhasil diperbarui! Menutup jendela...</span>
+            <span>Password berhasil diperbarui!</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-medium text-zinc-300 mb-1.5">Password Lama</label>
+            <label className="block font-medium text-zinc-300 mb-1.5">{t('pwd_modal_old', 'Password Lama')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -90,39 +92,37 @@ export function ChangePasswordModal({ isOpen, onClose }) {
                 required
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Masukkan password saat ini"
+                placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-medium text-zinc-300 mb-1.5">Password Baru (Min. 6 Karakter)</label>
+            <label className="block font-medium text-zinc-300 mb-1.5">{t('pwd_modal_new', 'Password Baru')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
-                minLength={6}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Masukkan password baru"
+                placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-medium text-zinc-300 mb-1.5">Konfirmasi Password Baru</label>
+            <label className="block font-medium text-zinc-300 mb-1.5">{t('pwd_modal_confirm', 'Konfirmasi Password Baru')}</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
-                minLength={6}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Ulangi password baru"
+                placeholder="••••••••"
                 className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500"
               />
             </div>
@@ -134,15 +134,21 @@ export function ChangePasswordModal({ isOpen, onClose }) {
               onClick={onClose}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-lg transition-colors"
             >
-              Batal
+              {t('cancel', 'Batal')}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-lg transition-colors flex items-center space-x-1.5 disabled:opacity-50"
+              className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-900 font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-1.5"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              <span>Simpan Password</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>{t('loading', 'Menyimpan...')}</span>
+                </>
+              ) : (
+                <span>{t('pwd_modal_submit', 'Perbarui Password')}</span>
+              )}
             </button>
           </div>
         </form>
