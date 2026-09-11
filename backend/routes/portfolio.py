@@ -14,6 +14,7 @@ router = APIRouter(tags=["Portfolio & Profile CMS"])
 
 
 @router.get("/api/public/profile")
+@router.head("/api/public/profile")
 def get_public_profile():
     """Public read-only profile data endpoint for https://arusuka.my.id."""
     data = get_portfolio_profile()
