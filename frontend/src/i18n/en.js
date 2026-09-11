@@ -1,0 +1,61 @@
+export default {
+  // Navigation
+  nav_overview: "Overview",
+  nav_storage: "Files & Photos",
+  nav_tasks: "Personal Tasks",
+  nav_jobs: "Career Tracker",
+  nav_brain: "Second Brain",
+  nav_weather: "Weather & Quakes",
+  nav_zepp: "Fitness & Health",
+  nav_schedules: "Automation Schedules",
+  
+  // Navbar
+  app_subtitle: "Personal Workspace & Server Hub",
+  ws_live: "Live Realtime",
+  ws_connecting: "Connecting...",
+  ws_offline: "Offline",
+  btn_refresh: "Refresh",
+  btn_change_password: "Change Password",
+  btn_logout: "Logout",
+  logout_confirm: "Are you sure you want to log out from the dashboard?",
+
+  // Common Actions
+  save: "Save",
+  cancel: "Cancel",
+  delete: "Delete",
+  edit: "Edit",
+  upload: "Upload",
+  download: "Download",
+  create: "Create",
+  search_placeholder: "Search...",
+  filter_all: "All",
+  confirm_delete_title: "Confirm Deletion",
+  confirm_delete_desc: "This action cannot be undone.",
+
+  // Storage Vault
+  vault_title: "Storage Vault & Photo Backup",
+  vault_badge: "Isolated & Private",
+  vault_subtitle: "Secure file storage at /home/arusuka/storage_vault",
+  vault_upload_btn: "Upload Files / Photos",
+  vault_new_folder: "New Folder",
+  vault_used_space: "Vault Storage Used",
+  vault_vps_free: "Free on VPS",
+  vault_total_files: "Total Files",
+  vault_total_media: "Photos & Media",
+  vault_uploading: "Uploading files to Storage Vault...",
+  vault_drop_zone: "Drop files here to upload immediately",
+  vault_empty_title: "This folder is empty",
+  vault_empty_desc: "Drag and drop photos or documents here, or click the Upload button above.",
+  vault_create_folder_title: "Create New Folder",
+  vault_rename_title: "Rename Item",
+  vault_filter_all: "All Types",
+  vault_filter_photos: "🖼️ Photos Only",
+  vault_filter_videos: "🎬 Videos Only",
+  vault_filter_docs: "📄 Documents",
+  vault_filter_backups: "📦 Backups / ZIP",
+
+  // Error Boundary
+  error_boundary_title: "Application Error Occurred",
+  error_boundary_desc: "An unexpected runtime error occurred in this view. Please try reloading or navigating back.",
+  error_boundary_retry: "Reload Application",
+};

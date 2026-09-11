@@ -1,19 +1,30 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import { ToastProvider } from './context/ToastContext';
-import { AuthProvider } from './context/AuthContext';
-import { WebSocketProvider } from './context/WebSocketContext';
-import './index.css';
+/**
+ * @file main.jsx
+ * @description Application entry point mounting global providers (Toast, Auth, WebSocket, i18n, ErrorBoundary).
+ */
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ToastProvider } from "./context/ToastContext";
+import { AuthProvider } from "./context/AuthContext";
+import { WebSocketProvider } from "./context/WebSocketContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ToastProvider>
-      <AuthProvider>
-        <WebSocketProvider>
-          <App />
-        </WebSocketProvider>
-      </AuthProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              <App />
+            </WebSocketProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

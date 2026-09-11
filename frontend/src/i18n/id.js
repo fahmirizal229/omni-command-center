@@ -1,0 +1,61 @@
+export default {
+  // Navigation
+  nav_overview: "Ringkasan",
+  nav_storage: "File & Foto",
+  nav_tasks: "Tugas Pribadi",
+  nav_jobs: "Pelacak Karir",
+  nav_brain: "Second Brain",
+  nav_weather: "Cuaca & Gempa",
+  nav_zepp: "Kebugaran",
+  nav_schedules: "Jadwal Otomasi",
+  
+  // Navbar
+  app_subtitle: "Personal Workspace & Server Hub",
+  ws_live: "Live Realtime",
+  ws_connecting: "Menghubungkan...",
+  ws_offline: "Offline",
+  btn_refresh: "Segarkan",
+  btn_change_password: "Ganti Password",
+  btn_logout: "Logout",
+  logout_confirm: "Apakah kamu yakin ingin logout dari dashboard?",
+
+  // Common Actions
+  save: "Simpan",
+  cancel: "Batal",
+  delete: "Hapus",
+  edit: "Ubah",
+  upload: "Unggah",
+  download: "Download",
+  create: "Buat",
+  search_placeholder: "Cari...",
+  filter_all: "Semua",
+  confirm_delete_title: "Konfirmasi Hapus",
+  confirm_delete_desc: "Tindakan ini tidak dapat dibatalkan.",
+
+  // Storage Vault
+  vault_title: "Storage Vault & Backup Foto",
+  vault_badge: "Khusus & Terisolasi",
+  vault_subtitle: "Penyimpanan berkas aman di /home/arusuka/storage_vault",
+  vault_upload_btn: "Unggah File / Foto",
+  vault_new_folder: "Folder Baru",
+  vault_used_space: "Ruang Terpakai Vault",
+  vault_vps_free: "Tersisa di VPS",
+  vault_total_files: "Total File",
+  vault_total_media: "Foto & Media",
+  vault_uploading: "Mengunggah berkas ke Storage Vault...",
+  vault_drop_zone: "Lepaskan file di sini untuk langsung mengunggah",
+  vault_empty_title: "Folder ini masih kosong",
+  vault_empty_desc: "Tarik dan lepas file foto atau dokumen ke sini, atau klik tombol Unggah di atas.",
+  vault_create_folder_title: "Buat Folder Baru",
+  vault_rename_title: "Ubah Nama Berkas",
+  vault_filter_all: "Semua Tipe",
+  vault_filter_photos: "🖼️ Foto Saja",
+  vault_filter_videos: "🎬 Video Saja",
+  vault_filter_docs: "📄 Dokumen",
+  vault_filter_backups: "📦 Backup / ZIP",
+
+  // Error Boundary
+  error_boundary_title: "Terjadi Kesalahan Aplikasi",
+  error_boundary_desc: "Komponen ini mengalami error tak terduga. Silakan coba muat ulang atau kembali ke halaman utama.",
+  error_boundary_retry: "Muat Ulang Halaman",
+};

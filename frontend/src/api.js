@@ -1,26 +1,48 @@
-const API_BASE = '/api';
+/**
+ * @file api.js
+ * @description Centralized HTTP Client and API abstraction layer for the Arusuka Command Center.
+ * Handles Bearer token authentication, automatic 401 token invalidation, JSON parsing,
+ * and unified error dispatching.
+ */
 
+const API_BASE = "/api";
+
+/**
+ * Retrieve current authentication session token from localStorage.
+ * @returns {string} Session token or empty string
+ */
 export function getAuthToken() {
-  return localStorage.getItem('arusuka_token') || '';
+  return localStorage.getItem("arusuka_token") || "";
 }
 
+/**
+ * Persist or clear authentication token in localStorage.
+ * @param {string|null} token - Bearer token or null to remove
+ */
 export function setAuthToken(token) {
   if (token) {
-    localStorage.setItem('arusuka_token', token);
+    localStorage.setItem("arusuka_token", token);
   } else {
-    localStorage.removeItem('arusuka_token');
+    localStorage.removeItem("arusuka_token");
   }
 }
 
+/**
+ * Core HTTP fetch wrapper with authorization headers and centralized error handling.
+ * @param {string} endpoint - API endpoint path (e.g. "/tasks")
+ * @param {RequestInit} [options={}] - Standard fetch configuration options
+ * @returns {Promise<any>} Parsed JSON response payload
+ * @throws {Error} Normalized error with status code and server detail
+ */
 export async function request(endpoint, options = {}) {
   const token = getAuthToken();
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options.headers || {}),
   };
 
-  if (token && !headers['Authorization']) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -28,10 +50,10 @@ export async function request(endpoint, options = {}) {
     headers,
   });
 
-  if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/status') {
-    setAuthToken('');
-    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-    throw new Error('Sesi kamu telah berakhir. Silakan login kembali.');
+  if (response.status === 401 && endpoint !== "/auth/login" && endpoint !== "/auth/status") {
+    setAuthToken("");
+    window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+    throw new Error("Sesi kamu telah berakhir. Silakan login kembali.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -46,78 +68,122 @@ export async function request(endpoint, options = {}) {
   return data;
 }
 
+/**
+ * Unified API Client for all dashboard sub-modules.
+ */
 export const api = {
-  // Auth
-  getAuthStatus: () => request('/auth/status'),
-  login: (username, password) => request('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  }),
-  logout: () => request('/auth/logout', { method: 'POST' }),
-  changePassword: (old_password, new_password) => request('/auth/change-password', {
-    method: 'POST',
-    body: JSON.stringify({ old_password, new_password }),
-  }),
+  // --- Authentication ---
+  /** Check current session authentication status */
+  getAuthStatus: () => request("/auth/status"),
+  /** Authenticate user with master credentials */
+  login: (username, password) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    }),
+  /** Invalidate active session cookie and token */
+  logout: () => request("/auth/logout", { method: "POST" }),
+  /** Update master dashboard password */
+  changePassword: (old_password, new_password) =>
+    request("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ old_password, new_password }),
+    }),
 
-  // Core Data Endpoints
-  getOverview: () => request('/overview'),
-  getTasks: (category = 'all') => request(`/tasks?category=${encodeURIComponent(category)}`),
-  createTask: (task) => request('/tasks', {
-    method: 'POST',
-    body: JSON.stringify(task),
-  }),
-  updateTask: (taskId, updateData) => request(`/tasks/${taskId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updateData),
-  }),
-  deleteTask: (taskId) => request(`/tasks/${taskId}`, { method: 'DELETE' }),
+  // --- Core Overview & Telemetry ---
+  /** Fetch aggregated overview stats and telemetry snapshot */
+  getOverview: () => request("/overview"),
 
-  getJobs: () => request('/jobs'),
-  createJob: (job) => request('/jobs', {
-    method: 'POST',
-    body: JSON.stringify(job),
-  }),
-  updateJobStatus: (jobId, updateData) => request(`/jobs/${jobId}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify(updateData),
-  }),
-  deleteJob: (jobId) => request(`/jobs/${jobId}`, { method: 'DELETE' }),
+  // --- Personal Tasks Kanban ---
+  /** Get personal tasks grouped by status column */
+  getTasks: (category = "all") => request(`/tasks?category=${encodeURIComponent(category)}`),
+  /** Create a new personal task card */
+  createTask: (task) =>
+    request("/tasks", {
+      method: "POST",
+      body: JSON.stringify(task),
+    }),
+  /** Patch task properties (status, priority, due date) */
+  updateTask: (taskId, updateData) =>
+    request(`/tasks/${taskId}`, {
+      method: "PATCH",
+      body: JSON.stringify(updateData),
+    }),
+  /** Delete task from database */
+  deleteTask: (taskId) => request(`/tasks/${taskId}`, { method: "DELETE" }),
 
-  getSecondBrain: (query = '') => request(`/second-brain${query ? `?query=${encodeURIComponent(query)}` : ''}`),
-  getWeather: () => request('/weather'),
-  getZepp: () => request('/zepp'),
-  getSchedules: () => request('/schedules'),
+  // --- Career & Job Hunter Tracker ---
+  /** Get career applications pipeline */
+  getJobs: () => request("/jobs"),
+  /** Create a new job application entry */
+  createJob: (job) =>
+    request("/jobs", {
+      method: "POST",
+      body: JSON.stringify(job),
+    }),
+  /** Update application status */
+  updateJobStatus: (jobId, updateData) =>
+    request(`/jobs/${jobId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(updateData),
+    }),
+  /** Delete job application entry */
+  deleteJob: (jobId) => request(`/jobs/${jobId}`, { method: "DELETE" }),
 
-  // Storage Vault & Photo Backup
-  getStorageFiles: (path = '') => request(`/storage/files${path ? `?path=${encodeURIComponent(path)}` : ''}`),
-  createStorageFolder: (path, folder_name) => request('/storage/mkdir', {
-    method: 'POST',
-    body: JSON.stringify({ path, folder_name }),
-  }),
-  renameStorageItem: (path, old_name, new_name) => request('/storage/rename', {
-    method: 'POST',
-    body: JSON.stringify({ path, old_name, new_name }),
-  }),
-  deleteStorageItem: (path) => request('/storage/delete', {
-    method: 'DELETE',
-    body: JSON.stringify({ path }),
-  }),
+  // --- Knowledge & Integrations ---
+  /** Search or retrieve Obsidian Second Brain notes */
+  getSecondBrain: (query = "") => request(`/second-brain${query ? `?query=${encodeURIComponent(query)}` : ""}`),
+  /** Get Surabaya weather, AQI, and BMKG earthquake early warning alerts */
+  getWeather: () => request("/weather"),
+  /** Get Amazfit / Zepp smartwatch activity and biometric metrics */
+  getZepp: () => request("/zepp"),
+  /** Get cron automation schedules and next execution times */
+  getSchedules: () => request("/schedules"),
+
+  // --- Storage Vault & File Manager ---
+  /** List files, directories, breadcrumbs, and disk usage for a vault subpath */
+  getStorageFiles: (path = "") => request(`/storage/files${path ? `?path=${encodeURIComponent(path)}` : ""}`),
+  /** Create a new folder inside the storage vault */
+  createStorageFolder: (path, folder_name) =>
+    request("/storage/mkdir", {
+      method: "POST",
+      body: JSON.stringify({ path, folder_name }),
+    }),
+  /** Rename an existing file or directory inside the vault */
+  renameStorageItem: (path, old_name, new_name) =>
+    request("/storage/rename", {
+      method: "POST",
+      body: JSON.stringify({ path, old_name, new_name }),
+    }),
+  /** Delete a file or directory recursively from the storage vault */
+  deleteStorageItem: (path) =>
+    request("/storage/delete", {
+      method: "DELETE",
+      body: JSON.stringify({ path }),
+    }),
+  /**
+   * Upload multiple files or photos with real-time percentage progress callback.
+   * @param {string} path - Target directory relative to vault root
+   * @param {FileList|File[]} files - Files to upload
+   * @param {(percent: number) => void} [onProgress] - Upload progress percentage callback
+   * @returns {Promise<{ status: string, message: string, uploaded_files: string[] }>}
+   */
   uploadStorageFiles: async (path, files, onProgress = null) => {
     const token = getAuthToken();
     const formData = new FormData();
-    formData.append('path', path || '');
+    formData.append("path", path || "");
     for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
+      formData.append("files", files[i]);
     }
 
     const headers = {};
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_BASE}/storage/upload`);
+      xhr.open("POST", `${API_BASE}/storage/upload`);
       for (const [k, v] of Object.entries(headers)) {
         xhr.setRequestHeader(k, v);
       }
@@ -136,7 +202,7 @@ export const api = {
           try {
             resolve(JSON.parse(xhr.responseText));
           } catch {
-            resolve({ status: 'success' });
+            resolve({ status: "success" });
           }
         } else {
           try {
@@ -148,7 +214,7 @@ export const api = {
         }
       };
 
-      xhr.onerror = () => reject(new Error('Koneksi jaringan terputus saat upload.'));
+      xhr.onerror = () => reject(new Error("Koneksi jaringan terputus saat upload."));
       xhr.send(formData);
     });
   },
