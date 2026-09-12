@@ -214,3 +214,70 @@ def get_orphan_notes(current_user: str = Depends(get_current_user)):
         "orphans": orphans,
         "total_orphans": len(orphans)
     }
+
+
+@router.get("/network-graph")
+def get_network_graph(current_user: str = Depends(get_current_user)):
+    """
+    Generate 2D interactive knowledge graph node-link dataset from Obsidian wikilinks.
+    Excludes sensitive finance notes.
+    """
+    import re
+
+    if not BRAIN_DIR.exists():
+        return {"nodes": [], "links": []}
+
+    nodes_map = {}
+    notes_content = {}
+    allowed_folders = ["Inbox", "Projects", "Entities", "Preferences", "Rules", "Readings", "Research"]
+
+    for folder in allowed_folders:
+        fld_dir = BRAIN_DIR / folder
+        if not fld_dir.exists():
+            continue
+        for f in fld_dir.glob("*.md"):
+            if is_finance_related(f.name) or is_finance_related(f.stem):
+                continue
+            try:
+                content = f.read_text(encoding="utf-8", errors="ignore")
+                if is_finance_related(content):
+                    continue
+                node_id = f.stem
+                nodes_map[node_id] = {
+                    "id": node_id,
+                    "label": f.stem.replace("_", " ").title(),
+                    "folder": folder,
+                    "filename": f.name,
+                    "val": 1
+                }
+                notes_content[node_id] = (content, folder, f.name)
+            except Exception:
+                pass
+
+    links = []
+    seen_links = set()
+
+    for node_id, (content, folder, fname) in notes_content.items():
+        raw_links = re.findall(r'\[\[(.*?)\]\]', content)
+        for target_raw in raw_links:
+            # Handle aliases like [[target|alias]] or [[folder/target]]
+            clean_target = target_raw.split('|')[0].strip()
+            target_stem = clean_target.split('/')[-1].strip()
+
+            if target_stem in nodes_map and target_stem != node_id:
+                link_key = tuple(sorted([node_id, target_stem]))
+                if link_key not in seen_links:
+                    seen_links.add(link_key)
+                    links.append({
+                        "source": node_id,
+                        "target": target_stem
+                    })
+                    nodes_map[node_id]["val"] += 1
+                    nodes_map[target_stem]["val"] += 1
+
+    return {
+        "nodes": list(nodes_map.values()),
+        "links": links,
+        "total_nodes": len(nodes_map),
+        "total_links": len(links)
+    }

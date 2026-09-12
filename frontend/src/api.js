@@ -180,6 +180,8 @@ export const api = {
     request(`/second-brain/note?folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`),
   /** Get orphan notes with 0 incoming wikilinks */
   getOrphanNotes: () => request("/second-brain/orphans"),
+  /** Get interactive knowledge graph node-link dataset */
+  getNetworkGraph: () => request("/second-brain/network-graph"),
   /** Get Surabaya weather, AQI, and BMKG earthquake early warning alerts */
   getWeather: () => request("/weather"),
   /** Get Amazfit / Zepp smartwatch activity and biometric metrics */
