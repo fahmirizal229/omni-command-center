@@ -34,7 +34,8 @@ import {
   ArrowUpDown,
   Code2,
   CheckCircle2,
-  Wrench
+  Wrench,
+  Brain
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
