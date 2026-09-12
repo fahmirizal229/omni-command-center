@@ -3,7 +3,6 @@ import { useAuth } from './context/AuthContext';
 import { useToast } from './context/ToastContext';
 import { useWebSocket } from './context/WebSocketContext';
 import { api } from './api';
-import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 
@@ -17,6 +16,7 @@ import { ZeppView } from './views/ZeppView';
 import { SchedulesView } from './views/SchedulesView';
 import { StorageView } from './views/StorageView';
 import { ProfileEditorView } from './views/ProfileEditorView';
+import { SessionsView } from './views/SessionsView';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -78,7 +78,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // 1. Live telemetry streaming every 2s (CPU, RAM, Disk, Uptime, Network)
+    // 1. Live telemetry streaming every 2s (CPU, RAM, Disk, Uptime, Fail2ban)
     const unsubTelemetry = addListener('telemetry', (msg) => {
       if (msg.system) {
         setOverviewData((prev) => {
@@ -131,6 +131,7 @@ export default function App() {
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     window.location.hash = tabId;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -142,10 +143,27 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Auto-refresh schedules in realtime when schedules tab is active
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'schedules') {
+      api.getSchedules().then((res) => {
+        if (res) setSchedulesData(res);
+      }).catch(() => {});
+
+      const interval = setInterval(() => {
+        api.getSchedules().then((res) => {
+          if (res) setSchedulesData(res);
+        }).catch(() => {});
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, activeTab]);
+
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0c0d11] text-zinc-400">
-        <Loader2 className="w-6 h-6 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#07080e] text-zinc-400">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
       </div>
     );
   }
@@ -155,45 +173,53 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0c0d11] text-zinc-100 selection:bg-zinc-700 selection:text-white">
-      <Navbar
+    <div className="min-h-screen bg-[#07080e] text-zinc-100 selection:bg-indigo-500/30 selection:text-white antialiased">
+      {/* Sleek Left Sidebar Navigation (Desktop Static & Mobile Drawer) */}
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
         onRefresh={() => fetchAllData(false)}
         refreshing={refreshing}
         onOpenChangePassword={() => setIsChangePasswordOpen(true)}
       />
 
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      {/* Main Full-Page View Container (Offset for Sidebar) */}
+      <div className="md:pl-64 lg:pl-72 flex-1 min-h-screen flex flex-col transition-all duration-300">
+        <main className="flex-1 px-4 sm:px-8 lg:px-10 pt-16 md:pt-6 pb-12 max-w-[1780px] w-full mx-auto">
+          {activeTab === 'overview' && (
+            <OverviewView overview={overviewData} onNavigate={handleTabChange} />
+          )}
+          {activeTab === 'profile' && (
+            <ProfileEditorView />
+          )}
+          {activeTab === 'storage' && (
+            <StorageView />
+          )}
+          {activeTab === 'tasks' && (
+            <TasksView tasksData={tasksData} onRefresh={() => fetchAllData(true)} />
+          )}
+          {activeTab === 'jobs' && (
+            <JobsView jobsData={jobsData} onRefresh={() => fetchAllData(true)} />
+          )}
+          {activeTab === 'brain' && (
+            <SecondBrainView brainData={brainData} />
+          )}
+          {activeTab === 'weather' && (
+            <WeatherView weatherData={weatherData} />
+          )}
+          {activeTab === 'zepp' && (
+            <ZeppView zeppData={zeppData} />
+          )}
+          {activeTab === 'schedules' && (
+            <SchedulesView schedulesData={schedulesData} />
+          )}
+          {activeTab === 'sessions' && (
+            <SessionsView />
+          )}
+        </main>
+      </div>
 
-      <main className="flex-1 px-4 lg:px-8 py-6 pb-20 sm:pb-8 max-w-7xl w-full mx-auto">
-        {activeTab === 'overview' && (
-          <OverviewView overview={overviewData} onNavigate={handleTabChange} />
-        )}
-        {activeTab === 'profile' && (
-          <ProfileEditorView />
-        )}
-        {activeTab === 'storage' && (
-          <StorageView />
-        )}
-        {activeTab === 'tasks' && (
-          <TasksView tasksData={tasksData} onRefresh={() => fetchAllData(true)} />
-        )}
-        {activeTab === 'jobs' && (
-          <JobsView jobsData={jobsData} onRefresh={() => fetchAllData(true)} />
-        )}
-        {activeTab === 'brain' && (
-          <SecondBrainView brainData={brainData} />
-        )}
-        {activeTab === 'weather' && (
-          <WeatherView weatherData={weatherData} />
-        )}
-        {activeTab === 'zepp' && (
-          <ZeppView zeppData={zeppData} />
-        )}
-        {activeTab === 'schedules' && (
-          <SchedulesView schedulesData={schedulesData} />
-        )}
-      </main>
-
+      {/* Password Change Modal */}
       <ChangePasswordModal
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}

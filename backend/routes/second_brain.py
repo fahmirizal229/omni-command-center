@@ -4,7 +4,7 @@ Obsidian Second Brain & Knowledge Graph API router (/api/second-brain).
 
 from typing import Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from backend.config import BRAIN_DIR, GRAPH_DB, is_finance_related
 from backend.database import get_db_connection
@@ -102,7 +102,115 @@ def get_second_brain(query: Optional[str] = None, current_user: str = Depends(ge
             print(f"Error reading graph stats: {e}")
 
     return {
-        "notes": notes[:30],
+        "notes": notes[:50],
         "total_notes": len(notes),
         "graph": graph_stats
+    }
+
+
+@router.get("/note")
+def get_note_detail(folder: str, filename: str, current_user: str = Depends(get_current_user)):
+    """Fetch full content, wikilinks, and backlinks of a specific Second Brain note."""
+    if not BRAIN_DIR.exists():
+        raise HTTPException(status_code=404, detail="Second Brain directory not found")
+
+    target_file = (BRAIN_DIR / folder / filename).resolve()
+    if not target_file.is_relative_to(BRAIN_DIR.resolve()) or not target_file.exists():
+        raise HTTPException(status_code=404, detail="Note file not found")
+
+    # Strict Privacy Filter
+    if is_finance_related(target_file.name) or is_finance_related(target_file.stem):
+        raise HTTPException(status_code=403, detail="Access to private finance notes is restricted")
+
+    content = target_file.read_text(encoding="utf-8", errors="ignore")
+    if is_finance_related(content):
+        raise HTTPException(status_code=403, detail="Access to private finance notes is restricted")
+
+    import re
+    # Extract outgoing wikilinks: [[link]] or [[folder/link]]
+    outgoing_links = re.findall(r'\[\[(.*?)\]\]', content)
+
+    # Scan for incoming backlinks across the vault
+    backlinks = []
+    target_stem = target_file.stem.lower()
+    for fld in ["Inbox", "Projects", "Entities", "Preferences", "Rules"]:
+        fld_dir = BRAIN_DIR / fld
+        if not fld_dir.exists():
+            continue
+        for other_file in fld_dir.glob("*.md"):
+            if other_file == target_file or is_finance_related(other_file.name):
+                continue
+            try:
+                other_content = other_file.read_text(encoding="utf-8", errors="ignore")
+                if f"[[{target_file.stem}]]" in other_content or f"[[{folder}/{target_file.stem}]]" in other_content or target_stem in other_content.lower():
+                    backlinks.append({
+                        "folder": fld,
+                        "filename": other_file.name,
+                        "title": other_file.stem.replace("_", " ").title()
+                    })
+            except Exception:
+                pass
+
+    stat = target_file.stat()
+    return {
+        "folder": folder,
+        "filename": filename,
+        "title": target_file.stem.replace("_", " ").title(),
+        "content": content,
+        "outgoing_links": outgoing_links,
+        "backlinks": backlinks,
+        "modified_at": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M"),
+        "size_bytes": stat.st_size
+    }
+
+
+@router.get("/orphans")
+def get_orphan_notes(current_user: str = Depends(get_current_user)):
+    """Find notes that have no incoming wikilinks from other notes (Orphan Notes)."""
+    if not BRAIN_DIR.exists():
+        return {"orphans": [], "total_orphans": 0}
+
+    all_notes = {}
+    all_contents = {}
+
+    for folder in ["Inbox", "Projects", "Entities", "Preferences", "Rules"]:
+        fld_dir = BRAIN_DIR / folder
+        if not fld_dir.exists():
+            continue
+        for f in fld_dir.glob("*.md"):
+            if is_finance_related(f.name) or is_finance_related(f.stem):
+                continue
+            try:
+                content = f.read_text(encoding="utf-8", errors="ignore")
+                if is_finance_related(content):
+                    continue
+                key = (folder, f.name, f.stem)
+                all_notes[key] = f
+                all_contents[key] = content
+            except Exception:
+                pass
+
+    orphans = []
+    for (folder, filename, stem), f_path in all_notes.items():
+        incoming_count = 0
+        stem_pattern = f"[[{stem}]]"
+        path_pattern = f"[[{folder}/{stem}]]"
+        for (other_folder, other_filename, other_stem), other_content in all_contents.items():
+            if (other_folder, other_filename) == (folder, filename):
+                continue
+            if stem_pattern in other_content or path_pattern in other_content:
+                incoming_count += 1
+
+        if incoming_count == 0:
+            stat = f_path.stat()
+            orphans.append({
+                "folder": folder,
+                "filename": filename,
+                "title": stem.replace("_", " ").title(),
+                "modified_at": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+            })
+
+    return {
+        "orphans": orphans,
+        "total_orphans": len(orphans)
     }

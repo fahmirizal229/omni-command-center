@@ -38,6 +38,8 @@ export async function request(endpoint, options = {}) {
   const token = getAuthToken();
   const headers = {
     "Content-Type": "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
     ...(options.headers || {}),
   };
 
@@ -46,6 +48,7 @@ export async function request(endpoint, options = {}) {
   }
 
   const response = await fetch(`${API_BASE}${endpoint}`, {
+    cache: "no-store",
     ...options,
     headers,
   });
@@ -112,9 +115,48 @@ export const api = {
   /** Delete task from database */
   deleteTask: (taskId) => request(`/tasks/${taskId}`, { method: "DELETE" }),
 
+  // --- Portfolio & Public Profile ---
+  /** Fetch public portfolio profile and projects */
+  getPortfolio: () => request("/portfolio"),
+  /** Update portfolio profile and projects metadata */
+  savePortfolio: (data) =>
+    request("/portfolio", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  // --- Hermes Sessions & Multi-LLM History ---
+  /** Fetch all Hermes conversation sessions with model attribution */
+  getSessions: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.search) q.set("search", params.search);
+    if (params.model) q.set("model", params.model);
+    if (params.source) q.set("source", params.source);
+    if (params.limit) q.set("limit", params.limit);
+    const queryStr = q.toString() ? `?${q.toString()}` : "";
+    return request(`/sessions${queryStr}`);
+  },
+  /** Fetch detailed message turns for a specific session */
+  getSessionDetail: (sessionId) => request(`/sessions/${sessionId}`),
+  /** Fetch multi-LLM comparative analytics and quota metrics */
+  getModelAnalytics: () => request("/sessions/analytics/models"),
+  /** Purge chat sessions older than N days (default 7) */
+  pruneSessions: (days = 7) => request(`/sessions/prune?days=${days}`, { method: "POST" }),
+  /** Hard reset all conversation sessions and LLM logs */
+  resetSessions: () => request("/sessions/reset", { method: "POST" }),
+
   // --- Career & Job Hunter Tracker ---
   /** Get career applications pipeline */
   getJobs: () => request("/jobs"),
+  /** Search live remote or local job openings */
+  searchLiveJobs: (query = "backend", job_type = "remote", location = "Jawa / Indonesia", limit = 12, page = 1) =>
+    request(`/jobs/live-search?query=${encodeURIComponent(query)}&job_type=${encodeURIComponent(job_type)}&location=${encodeURIComponent(location)}&limit=${limit}&page=${page}`),
+  /** Deep analyze CV match for a job description */
+  analyzeJobMatch: (data) =>
+    request("/jobs/analyze-match", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   /** Create a new job application entry */
   createJob: (job) =>
     request("/jobs", {
@@ -133,6 +175,11 @@ export const api = {
   // --- Knowledge & Integrations ---
   /** Search or retrieve Obsidian Second Brain notes */
   getSecondBrain: (query = "") => request(`/second-brain${query ? `?query=${encodeURIComponent(query)}` : ""}`),
+  /** Get full content, wikilinks, and backlinks of a specific note */
+  getNoteDetail: (folder, filename) =>
+    request(`/second-brain/note?folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`),
+  /** Get orphan notes with 0 incoming wikilinks */
+  getOrphanNotes: () => request("/second-brain/orphans"),
   /** Get Surabaya weather, AQI, and BMKG earthquake early warning alerts */
   getWeather: () => request("/weather"),
   /** Get Amazfit / Zepp smartwatch activity and biometric metrics */

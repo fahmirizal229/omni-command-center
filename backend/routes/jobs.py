@@ -15,10 +15,23 @@ from backend.websocket import trigger_ws_event
 router = APIRouter(prefix="/api/jobs", tags=["Job Hunter"])
 
 
+import sys
+from pathlib import Path
+
+JOB_HUNTER_DIR = Path("/home/arusuka/mcp-job-hunter")
+if str(JOB_HUNTER_DIR) not in sys.path:
+    sys.path.insert(0, str(JOB_HUNTER_DIR))
+
+try:
+    import job_engine
+except ImportError:
+    job_engine = None
+
+
 class JobCreate(BaseModel):
     company: str
     role: str
-    location: Optional[str] = "Surabaya / Remote"
+    location: Optional[str] = "Jawa / Remote"
     salary: Optional[str] = ""
     job_url: Optional[str] = ""
     status: Optional[str] = "wishlist"
@@ -31,6 +44,12 @@ class JobStatusUpdate(BaseModel):
     status: str
     next_schedule: Optional[str] = None
     notes: Optional[str] = None
+
+
+class JobAnalyzeRequest(BaseModel):
+    role: str
+    job_description: str
+    tech_stack: Optional[list] = None
 
 
 @router.get("")
@@ -159,3 +178,57 @@ def delete_job(job_id: int, current_user: str = Depends(get_current_user)):
 
     trigger_ws_event("jobs_updated", {"action": "deleted", "id": job_id})
     return {"status": "success", "message": f"Job #{job_id} deleted"}
+
+
+@router.get("/live-search")
+def live_search_jobs(
+    query: str = "backend",
+    job_type: str = "remote",
+    location: str = "Jawa / Indonesia",
+    page: int = 1,
+    limit: int = 12,
+    current_user: str = Depends(get_current_user)
+):
+    """Search live remote or local job openings with AI tech stack matching and pagination."""
+    if not job_engine:
+        raise HTTPException(status_code=500, detail="Job hunting engine not available")
+
+    safe_page = max(1, page)
+    if job_type == "local":
+        results = job_engine.search_local_jobs(query=query, location=location, limit=limit, page=safe_page)
+    else:
+        results = job_engine.search_remote_jobs(query=query, limit=limit, page=safe_page)
+
+    return {
+        "query": query,
+        "type": job_type,
+        "page": safe_page,
+        "limit": limit,
+        "count": len(results),
+        "has_more": len(results) >= limit,
+        "jobs": results
+    }
+
+
+@router.post("/analyze-match")
+def analyze_job_cv_match(
+    payload: JobAnalyzeRequest,
+    current_user: str = Depends(get_current_user)
+):
+    """Deep analysis of Job Description vs User's actual CV/Experience."""
+    if not job_engine:
+        raise HTTPException(status_code=500, detail="Job hunting engine not available")
+
+    try:
+        analysis = job_engine.analyze_job_match(
+            role=payload.role,
+            job_description=payload.job_description,
+            tech_stack=payload.tech_stack
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal menganalisis kecocokan: {str(e)}")
+
+    return {
+        "status": "success",
+        "analysis": analysis
+    }

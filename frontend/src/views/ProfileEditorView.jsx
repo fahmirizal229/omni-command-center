@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Sparkles,
   ShieldCheck,
   Cpu,
   Database,
@@ -57,6 +56,20 @@ export function ProfileEditorView() {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Keyboard shortcut Ctrl+S / Cmd+S for quick saving
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (hasChanges && !saving && profile) {
+          handleSave();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasChanges, saving, profile]);
 
   // Handle Save
   const handleSave = async () => {
@@ -137,7 +150,6 @@ export function ProfileEditorView() {
 
   const SUB_TABS = [
     { id: "vitals", label: "📞 Kontak & Vitals", icon: User },
-    { id: "highlights", label: "🌟 Pilar Eksekutif", icon: Sparkles },
     { id: "metrics", label: "📊 Metrik Kunci", icon: ShieldCheck },
     { id: "skills", label: "⚡ Keahlian & Tech Stack", icon: Cpu },
     { id: "experiences", label: "💼 Pengalaman Kerja", icon: Briefcase },
@@ -455,106 +467,7 @@ export function ProfileEditorView() {
           </div>
         )}
 
-        {/* ================= TAB 2: HIGHLIGHTS (4 PILLARS) ================= */}
-        {activeSubTab === "highlights" && (
-          <div className="rounded-xl bg-[#121215] border border-zinc-800 p-6 space-y-6 shadow-lg">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <h3 className="text-sm font-bold text-zinc-100 flex items-center space-x-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Pilar Eksekutif & Sorotan Keahlian (4 Pillar Cards)</span>
-              </h3>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(profile.summary?.highlights || []).map((h, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/90 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-emerald-400">
-                      Pilar #{idx + 1}
-                    </span>
-                    <span className="text-[11px] font-mono text-zinc-500">
-                      Icon: {h.icon}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    <div className="space-y-1">
-                      <label className="text-zinc-400">Judul (EN)</label>
-                      <input
-                        type="text"
-                        value={h.titleEn || ""}
-                        onChange={(e) => {
-                          const updated = [...profile.summary.highlights];
-                          updated[idx].titleEn = e.target.value;
-                          setProfile((prev) => ({
-                            ...prev,
-                            summary: { ...prev.summary, highlights: updated },
-                          }));
-                          setHasChanges(true);
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-zinc-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-zinc-400">Judul (ID)</label>
-                      <input
-                        type="text"
-                        value={h.titleId || ""}
-                        onChange={(e) => {
-                          const updated = [...profile.summary.highlights];
-                          updated[idx].titleId = e.target.value;
-                          setProfile((prev) => ({
-                            ...prev,
-                            summary: { ...prev.summary, highlights: updated },
-                          }));
-                          setHasChanges(true);
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-zinc-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-zinc-400">Deskripsi (EN)</label>
-                      <textarea
-                        rows={2}
-                        value={h.descEn || ""}
-                        onChange={(e) => {
-                          const updated = [...profile.summary.highlights];
-                          updated[idx].descEn = e.target.value;
-                          setProfile((prev) => ({
-                            ...prev,
-                            summary: { ...prev.summary, highlights: updated },
-                          }));
-                          setHasChanges(true);
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-zinc-500 focus:outline-none resize-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-zinc-400">Deskripsi (ID)</label>
-                      <textarea
-                        rows={2}
-                        value={h.descId || ""}
-                        onChange={(e) => {
-                          const updated = [...profile.summary.highlights];
-                          updated[idx].descId = e.target.value;
-                          setProfile((prev) => ({
-                            ...prev,
-                            summary: { ...prev.summary, highlights: updated },
-                          }));
-                          setHasChanges(true);
-                        }}
-                        className="w-full px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 focus:border-zinc-500 focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* ================= TAB 3: KEY METRICS ================= */}
         {activeSubTab === "metrics" && (
@@ -1367,6 +1280,49 @@ export function ProfileEditorView() {
           </div>
         )}
       </div>
+
+      {/* Floating Save Toolbar when changes are detected */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-[#18181b]/95 backdrop-blur-md border border-emerald-500/40 shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-xs font-semibold text-zinc-100">
+              Ada perubahan profil yang belum disimpan
+            </span>
+            <span className="text-[10px] text-zinc-400 font-mono bg-zinc-800 px-1.5 py-0.5 rounded hidden sm:inline">
+              Ctrl+S
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={fetchProfile}
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-300 transition-colors cursor-pointer"
+            >
+              Batalkan
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Simpan Perubahan</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

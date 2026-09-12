@@ -21,7 +21,9 @@ def get_public_profile():
     return JSONResponse(
         content=data,
         headers={
-            "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
             "Access-Control-Allow-Origin": "*",
         }
     )

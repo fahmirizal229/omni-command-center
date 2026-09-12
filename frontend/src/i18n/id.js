@@ -1,6 +1,7 @@
 export default {
   // Navigation & Sidebar
   nav_overview: "Ringkasan",
+  nav_sessions: "Riwayat AI",
   nav_profile: "Profil & CV",
   nav_storage: "Storage Vault",
   nav_tasks: "Tugas Pribadi",
@@ -70,6 +71,7 @@ export default {
   overview_fitness_title: "Kebugaran & Aktivitas",
   overview_fitness_sync: "Zepp Sync",
   overview_today_steps: "Langkah Hari Ini",
+  overview_today_goal: "Target",
   overview_today_calorie: "kcal",
   overview_last_sleep: "Tidur Semalam",
   overview_view_fitness: "Lihat Rincian Kebugaran",

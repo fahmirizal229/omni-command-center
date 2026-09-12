@@ -6,10 +6,10 @@ from backend.config import TASK_DB, JOB_DB, PORTFOLIO_DB
 DEFAULT_PROFILE_DATA = {
     "name": "Muhammad Fahmi Rizal",
     "alias": "arusuka",
-    "title": "Back-End Engineer & Cloud Architect",
+    "title": "Backend Engineer & Cloud Infrastructure",
     "headline": {
-        "en": "Back-End Engineer specializing in Go, PHP (Laravel), Node.js, Distributed Microservices, and Kubernetes Cloud Architecture.",
-        "id": "Back-End Engineer spesialis Go, PHP (Laravel), Node.js, Arsitektur Microservices Terdistribusi, dan Kubernetes Cloud Infrastructure."
+        "en": "Backend Engineer focused on distributed systems, Go, PHP (Laravel), Node.js, and cloud infrastructure.",
+        "id": "Backend Engineer yang berfokus pada sistem backend Go, PHP (Laravel), Node.js, dan arsitektur cloud terdistribusi."
     },
     "location": "Surabaya, Jawa Timur, Indonesia",
     "contact": {
@@ -23,98 +23,158 @@ DEFAULT_PROFILE_DATA = {
         "dashboardUrl": "https://dashboard.arusuka.my.id"
     },
     "availability": {
-        "status": "Available for Opportunities",
-        "statusId": "Terbuka untuk Peluang Kerja & Kolaborasi",
+        "status": "Open to Work & Engineering Discussions",
+        "statusId": "Terbuka untuk Diskusi & Peluang Kerja",
         "badgeColor": "emerald"
     },
     "summary": {
         "lead": {
-            "en": "Results-driven Senior Backend & Cloud Infrastructure Engineer with 6+ years of experience architecting resilient distributed systems, enterprise cloud platforms (IaaS & PaaS), and high-throughput microservices.",
-            "id": "Senior Backend & Cloud Infrastructure Engineer berpengalaman 6+ tahun dalam merancang arsitektur sistem terdistribusi, platform cloud enterprise (IaaS & PaaS), dan microservices berkinerja tinggi."
+            "en": "Backend & Cloud Infrastructure Engineer with 6+ years of experience building and maintaining production distributed systems, cloud platforms (IaaS/PaaS), and high-throughput APIs. Directly involved in engineering Cloudraya V2 core engines at Wowrack—spanning VM compute & bare-metal management, S3-compatible storage, managed Kubernetes provisioning, and automated usage billing.",
+            "id": "Backend & Cloud Infrastructure Engineer dengan pengalaman 6+ tahun dalam membangun dan memelihara sistem terdistribusi, platform cloud (IaaS/PaaS), dan API skala produksi. Terlibat langsung dalam pengembangan core engine Cloudraya V2 di Wowrack—mulai dari manajemen VM compute & bare-metal, storage kompatibel S3, provisioning cluster Kubernetes, hingga automated metering & billing."
         },
-        "highlights": [
-            {
-                "icon": "Cloud",
-                "titleEn": "Cloud Architecture & Microservices",
-                "titleId": "Arsitektur Cloud & Microservices",
-                "descEn": "Designed and engineered core Cloudraya V2 microservices from scratch, including Compute VM lifecycle, S3-compatible Object Storage, Managed Kubernetes provisioning, and real-time usage-based billing engines.",
-                "descId": "Merancang dan membangun ekosistem microservices Cloudraya V2 dari nol: siklus hidup Compute VM, S3-compatible Object Storage, provisioning Kubernetes terkelola, dan engine billing berbasis pemakaian real-time."
-            },
-            {
-                "icon": "Server",
-                "titleEn": "Backend & Distributed Systems",
-                "titleId": "Backend & Sistem Terdistribusi",
-                "descEn": "Extensive hands-on expertise in Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, Redis caching, event-driven messaging, and real-time WebSockets (Laravel Reverb).",
-                "descId": "Keahlian mendalam dalam Go, PHP (Laravel), Node.js, PostgreSQL, MongoDB, caching Redis, arsitektur event-driven, dan real-time WebSockets (Laravel Reverb)."
-            },
-            {
-                "icon": "ShieldCheck",
-                "titleEn": "Reliability & Automated Quality",
-                "titleId": "Keandalan & Otomasi Kualitas",
-                "descEn": "Ensured 99.9% uptime SLA through rigorous automated test suites (PHPUnit Unit & Feature tests with microservice mocking), Bitbucket CI/CD pipelines, and proactive L3 production support.",
-                "descId": "Menjamin SLA uptime 99.9% melalui automated testing ketat (PHPUnit Unit & Feature tests dengan microservice mocking), Bitbucket CI/CD pipeline, dan dukungan eskalasi L3 produksi."
-            },
-            {
-                "icon": "Layers",
-                "titleEn": "Enterprise & Real-Time IoT",
-                "titleId": "Solusi Enterprise & IoT Real-Time",
-                "descEn": "Demonstrated track record delivering high-throughput IoT sensor ingestion (Suramadu Bridge), government portals (Surabaya City & Dishub), and enterprise ERP modules (Petrokimia Gresik, WIKA).",
-                "descId": "Rekam jejak terbukti dalam data ingestion telemetri sensor IoT berkecepatan tinggi (Jembatan Suramadu), portal pemerintah (Pemkot Surabaya & Dishub), serta ERP BUMN (Petrokimia Gresik, WIKA)."
-            }
-        ]
+        "body": {
+            "en": "Hands-on with Go, PHP (Laravel), Node.js, PostgreSQL, Redis, and event-driven architectures. Experienced in high-throughput IoT sensor data pipelines (Suramadu Bridge), government service portals (Surabaya City Govt & Dishub), and enterprise integrations.",
+            "id": "Terbiasa bekerja dengan Go, PHP (Laravel), Node.js, PostgreSQL, Redis, dan event-driven architecture. Berpengalaman menangani pipeline data telemetri IoT (Jembatan Suramadu), portal instansi pemerintah (Pemkot Surabaya & Dishub), serta sistem enterprise."
+        }
     },
     "keyMetrics": [
-        {"labelEn": "Years Experience", "labelId": "Tahun Pengalaman", "value": "6+", "highlight": "Backend & Cloud"},
-        {"labelEn": "Microservices Engineered", "labelId": "Layanan Microservices", "value": "10+", "highlight": "Cloudraya V2 IaaS/PaaS"},
-        {"labelEn": "Enterprise & Gov Projects", "labelId": "Proyek BUMN & Pemerintah", "value": "15+", "highlight": "Pemkot, BUMN, IoT"},
-        {"labelEn": "Platform Reliability", "labelId": "Standar Keandalan Sistem", "value": "99.9%", "highlight": "Automated Testing & HA"}
+        {
+            "labelEn": "Experience",
+            "labelId": "Pengalaman",
+            "value": "6+ Thn",
+            "highlight": "Backend & Cloud"
+        },
+        {
+            "labelEn": "Focus Stack",
+            "labelId": "Stack Utama",
+            "value": "Go / PHP",
+            "highlight": "Laravel & Node.js"
+        },
+        {
+            "labelEn": "Core Platform",
+            "labelId": "Platform Inti",
+            "value": "Cloudraya",
+            "highlight": "IaaS & PaaS Engine"
+        },
+        {
+            "labelEn": "Location",
+            "labelId": "Domisili",
+            "value": "Surabaya",
+            "highlight": "Jawa Timur, ID"
+        }
     ],
     "skillCategories": [
         {
-            "nameEn": "Backend & Distributed Systems",
-            "nameId": "Backend & Sistem Terdistribusi",
+            "nameEn": "Backend & Services",
+            "nameId": "Backend & Layanan",
             "icon": "Server",
             "skills": [
-                {"name": "Go (Golang)", "level": "Advanced", "desc": "High-performance microservices & CLI tools"},
-                {"name": "PHP & Laravel", "level": "Expert", "desc": "Clean Architecture, Event-Driven, Reverb WebSockets"},
-                {"name": "Node.js & TypeScript", "level": "Advanced", "desc": "REST APIs, NestJS, Express, Async I/O"},
-                {"name": "Python", "level": "Proficient", "desc": "FastAPI, Automation, MCP Servers, Agent Tooling"},
-                {"name": "Microservices Architecture", "level": "Expert", "desc": "API Gateway, Service Discovery, Domain-Driven Design"}
+                {
+                    "name": "Go (Golang)",
+                    "level": "Advanced",
+                    "desc": "Microservices berkinerja tinggi, concurrency, dan CLI tools"
+                },
+                {
+                    "name": "PHP & Laravel",
+                    "level": "Expert",
+                    "desc": "Clean Architecture, Event-Driven, Laravel Reverb WebSockets"
+                },
+                {
+                    "name": "Node.js & TypeScript",
+                    "level": "Advanced",
+                    "desc": "REST APIs, Express, NestJS, async I/O"
+                },
+                {
+                    "name": "Python",
+                    "level": "Proficient",
+                    "desc": "FastAPI, otomasi sistem, integrasi API & tooling"
+                }
             ]
         },
         {
-            "nameEn": "Databases & Storage Engines",
-            "nameId": "Database & Mesin Penyimpanan",
+            "nameEn": "Databases & Caching",
+            "nameId": "Database & Caching",
             "icon": "Database",
             "skills": [
-                {"name": "PostgreSQL", "level": "Expert", "desc": "Complex indexing, partitioning, query optimization"},
-                {"name": "MySQL / MariaDB", "level": "Expert", "desc": "Relational modeling, replication, tuning"},
-                {"name": "MongoDB", "level": "Advanced", "desc": "Document storage, schema design, aggregation"},
-                {"name": "Redis", "level": "Advanced", "desc": "Distributed caching, pub/sub queues, rate limiters"},
-                {"name": "S3 Object Storage", "level": "Expert", "desc": "S3 API protocol, bucket routing, block storage"}
+                {
+                    "name": "PostgreSQL",
+                    "level": "Expert",
+                    "desc": "Desain skema, indexing, optimasi query, dan partisi"
+                },
+                {
+                    "name": "MySQL / MariaDB",
+                    "level": "Expert",
+                    "desc": "Relational database modeling, query tuning, replikasi"
+                },
+                {
+                    "name": "Redis",
+                    "level": "Advanced",
+                    "desc": "Distributed caching, pub/sub queues, session store"
+                },
+                {
+                    "name": "MongoDB",
+                    "level": "Advanced",
+                    "desc": "Document storage, aggregation pipeline, indexing"
+                },
+                {
+                    "name": "S3 Object Storage",
+                    "level": "Expert",
+                    "desc": "Protokol S3 API, bucket management, block storage"
+                }
             ]
         },
         {
-            "nameEn": "Cloud, Containers & DevOps",
-            "nameId": "Cloud, Container & DevOps",
+            "nameEn": "Cloud & Infrastructure",
+            "nameId": "Cloud & Infrastruktur",
             "icon": "Cloud",
             "skills": [
-                {"name": "Kubernetes (K8s)", "level": "Advanced", "desc": "Cluster orchestration, Ingress, VPC, Helm"},
-                {"name": "Docker", "level": "Expert", "desc": "Multi-stage builds, container optimization, compose"},
-                {"name": "Apache CloudStack", "level": "Advanced", "desc": "VM provisioning, compute lifecycle, bare-metal"},
-                {"name": "Linux Administration", "level": "Expert", "desc": "Debian/Ubuntu hardening, Systemd, UFW, Fail2ban"},
-                {"name": "CI/CD Pipelines", "level": "Advanced", "desc": "Bitbucket Pipelines, GitHub Actions, Automated Testing"}
+                {
+                    "name": "Kubernetes (K8s)",
+                    "level": "Advanced",
+                    "desc": "Cluster provisioning, Ingress, service networking"
+                },
+                {
+                    "name": "Docker",
+                    "level": "Expert",
+                    "desc": "Containerization, multi-stage build, docker-compose"
+                },
+                {
+                    "name": "Apache CloudStack",
+                    "level": "Advanced",
+                    "desc": "Orkestrasi hypervisor, VM compute lifecycle"
+                },
+                {
+                    "name": "Linux Administration",
+                    "level": "Expert",
+                    "desc": "Debian/Ubuntu, systemd, security hardening, networking"
+                },
+                {
+                    "name": "CI/CD Automation",
+                    "level": "Advanced",
+                    "desc": "Bitbucket Pipelines, GitHub Actions, automated deployment"
+                }
             ]
         },
         {
-            "nameEn": "Quality, Testing & Reliability",
-            "nameId": "Kualitas, Testing & Keandalan",
+            "nameEn": "Testing & Security",
+            "nameId": "Testing & Keamanan",
             "icon": "ShieldCheck",
             "skills": [
-                {"name": "PHPUnit Automated Testing", "level": "Expert", "desc": "Unit & Feature tests, microservice mocking"},
-                {"name": "API Security & Hardening", "level": "Expert", "desc": "Anti-Brute Force, HMAC tokens, JWT, Strict CORS"},
-                {"name": "L3 Production Support", "level": "Expert", "desc": "Deep debugging, RCA, live hotfix, telemetry"},
-                {"name": "WebSocket & Realtime", "level": "Advanced", "desc": "Laravel Reverb, socket push notifications"}
+                {
+                    "name": "PHPUnit Automated Testing",
+                    "level": "Expert",
+                    "desc": "Unit test, feature test, service mocking"
+                },
+                {
+                    "name": "API Security",
+                    "level": "Expert",
+                    "desc": "Rate limiting, JWT auth, input validation, strict CORS"
+                },
+                {
+                    "name": "Production L3 Support",
+                    "level": "Expert",
+                    "desc": "Root Cause Analysis (RCA), hotfix, debugging sistem live"
+                }
             ]
         }
     ],
@@ -123,79 +183,103 @@ DEFAULT_PROFILE_DATA = {
             "company": "Wowrack Indonesia",
             "product": "Cloudraya V2",
             "platformUrl": "https://panel.cloudraya.com/",
-            "role": "Back End Developer",
-            "period": "Des 2021 – Present",
-            "duration": "4+ years",
+            "role": "Backend Developer",
+            "period": "Des 2021 – Sekarang",
+            "duration": "4+ tahun",
             "location": "Surabaya, Jawa Timur",
             "type": "Full-time",
-            "highlightEn": "Architected and developed the Cloudraya V2 microservices ecosystem from the ground up, powering full-lifecycle Cloud IaaS & PaaS platform operations.",
-            "highlightId": "Merancang dan membangun ekosistem microservices Cloudraya V2 dari nol, menggerakkan operasional platform Cloud IaaS & PaaS secara menyeluruh.",
+            "highlightEn": "Engineered core microservices for Cloudraya V2 platform, managing compute provisioning, storage, networking, and usage billing.",
+            "highlightId": "Mengembangkan engine microservices untuk platform Cloudraya V2, menangani provisioning komputasi, storage, networking, dan billing.",
             "modules": [
                 {
                     "title": "Compute & Virtualization Engine",
-                    "descEn": "Engineered microservices for VM provisioning, CloudStack hypervisor orchestration, and Bare-Metal server lifecycle management.",
-                    "descId": "Mengembangkan microservices untuk provisioning Virtual Machine, orkestrasi CloudStack, dan pengelolaan siklus server Bare-Metal."
+                    "descEn": "Built microservices for VM provisioning, CloudStack hypervisor orchestration, and Bare-Metal server lifecycle.",
+                    "descId": "Membangun microservices untuk provisioning Virtual Machine, orkestrasi CloudStack hypervisor, dan siklus server Bare-Metal."
                 },
                 {
-                    "title": "Storage & S3-Compatible Object Storage",
-                    "descEn": "Built high-throughput S3-compatible Object Storage services, block storage management, and dynamic DNS bucket routing.",
-                    "descId": "Membangun layanan Object Storage kompatibel S3 berkecepatan tinggi, manajemen block storage, dan routing DNS bucket dinamis."
+                    "title": "S3 Object Storage Service",
+                    "descEn": "Engineered high-throughput S3-compatible Object Storage services, dynamic DNS bucket routing, and block storage.",
+                    "descId": "Mengembangkan layanan Object Storage kompatibel S3, routing DNS bucket dinamis, dan pengelolaan block storage."
                 },
                 {
-                    "title": "Managed Kubernetes & Cloud Networking",
-                    "descEn": "Built automated microservices for managed Kubernetes cluster provisioning and software-defined cloud networking (VPC, public IPs, firewalls).",
-                    "descId": "Membangun microservices otomatis untuk provisioning cluster Kubernetes terkelola dan jaringan cloud (VPC, IP publik, firewall)."
+                    "title": "Managed Kubernetes & Networking",
+                    "descEn": "Built automated services for Kubernetes cluster provisioning and software-defined networking (VPC, public IP, firewall).",
+                    "descId": "Membangun automasi provisioning cluster Kubernetes terkelola dan konfigurasi jaringan cloud (VPC, IP publik, firewall)."
                 },
                 {
-                    "title": "Metering & Real-Time Billing Engine",
-                    "descEn": "Engineered usage-based billing pipelines, multi-region resource quota management, telemetry tracking, and automated invoice generators.",
-                    "descId": "Merancang pipeline billing berbasis pemakaian riil, manajemen kuota multi-region, pelacakan telemetri, dan pembuatan invoice otomatis."
+                    "title": "Usage Metering & Billing Engine",
+                    "descEn": "Designed real-time usage-based billing pipelines, multi-region resource quota management, and automated invoices.",
+                    "descId": "Merancang pipeline kalkulasi billing berbasis pemakaian riil, kuota resource multi-region, dan otomasi invoice bulanan."
                 },
                 {
-                    "title": "Real-Time Streaming & Core Services",
-                    "descEn": "Developed real-time user notification pipelines via Laravel Reverb (WebSockets), centralized product catalogs, and OS template image repositories.",
-                    "descId": "Mengembangkan sistem notifikasi realtime via Laravel Reverb WebSockets, katalog produk terpusat, dan repositori template OS image."
+                    "title": "Real-time Telemetry & Notification",
+                    "descEn": "Implemented real-time event streaming via Laravel Reverb (WebSockets) and centralized OS image template repository.",
+                    "descId": "Mengembangkan sistem notifikasi realtime via Laravel Reverb (WebSockets) dan repositori template OS image."
                 },
                 {
-                    "title": "Reliability, CI/CD & L3 Technical Support",
-                    "descEn": "Enforced system reliability via comprehensive automated testing (PHPUnit Unit & Feature) with service mocking, Bitbucket CI/CD to Kubernetes, and handled L3 technical escalation support.",
-                    "descId": "Menjaga keandalan sistem melalui automated testing PHPUnit menyeluruh dengan service mocking, deployment CI/CD ke Kubernetes, dan menangani eskalasi teknis L3 produksi."
+                    "title": "Testing, CI/CD & L3 Support",
+                    "descEn": "Enforced reliability with automated PHPUnit suites, CI/CD pipelines to Kubernetes, and handled L3 technical escalations.",
+                    "descId": "Menjaga kualitas sistem dengan automated testing PHPUnit menyeluruh, CI/CD ke Kubernetes, serta menangani eskalasi L3 produksi."
                 }
             ],
-            "techStack": ["PHP", "Laravel", "PostgreSQL", "MySQL", "MongoDB", "Redis", "WebSockets (Reverb)", "Kubernetes", "Docker", "Bitbucket CI/CD", "CloudStack", "S3 API", "PHPUnit"]
+            "techStack": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "MySQL",
+                "MongoDB",
+                "Redis",
+                "WebSockets (Reverb)",
+                "Kubernetes",
+                "Docker",
+                "Bitbucket CI/CD",
+                "CloudStack",
+                "S3 API",
+                "PHPUnit"
+            ]
         },
         {
             "company": "Energeek",
-            "role": "Back End Developer",
+            "role": "Backend Developer",
             "period": "Mar 2019 – Des 2021",
-            "duration": "2 years 10 months",
+            "duration": "2 tahun 10 bulan",
             "location": "Surabaya, Jawa Timur",
             "type": "Full-time",
-            "highlightEn": "Developed, maintained, and delivered full-lifecycle web applications for government agencies, state-owned enterprises (BUMN), and corporate clients.",
-            "highlightId": "Mengembangkan, memelihara, dan merilis aplikasi web enterprise untuk instansi pemerintah, BUMN, dan klien korporat.",
+            "highlightEn": "Developed backend APIs and web applications for government institutions, state-owned enterprises, and IoT systems.",
+            "highlightId": "Mengembangkan dan mengelola aplikasi web serta backend API untuk instansi pemerintah, BUMN, dan proyek IoT.",
             "modules": [
                 {
-                    "title": "Government & Public Sector Portals",
-                    "descEn": "Built equipment asset management and project proposal approval portals for Surabaya City Government, and vehicle registration numbering system for Department of Transportation (Dishub).",
-                    "descId": "Membangun sistem manajemen aset peralatan dan proposal proyek untuk Pemerintah Kota Surabaya, serta sistem penomoran kendaraan Dishub."
+                    "title": "Portal Instansi Pemerintah",
+                    "descEn": "Built asset management & proposal approval portal for Surabaya City Government, and vehicle registration system for Dishub.",
+                    "descId": "Membangun sistem manajemen aset dan proposal untuk Pemkot Surabaya, serta sistem penomoran registrasi kendaraan Dishub."
                 },
                 {
-                    "title": "Corporate & Enterprise Applications",
-                    "descEn": "Engineered internal ERP modules for Petrokimia Gresik (Nisa), project information system for PT Wijaya Karya (WIKA SIP), and academic service portal for Universitas Pertamina (Call UP).",
-                    "descId": "Mengembangkan modul ERP internal Petrokimia Gresik (Nisa), sistem informasi proyek PT Wijaya Karya (WIKA SIP), dan portal akademik Universitas Pertamina (Call UP)."
+                    "title": "Aplikasi Enterprise & BUMN",
+                    "descEn": "Engineered internal ERP modules for Petrokimia Gresik (Nisa), project management system for PT WIKA (SIP), and portal for Universitas Pertamina.",
+                    "descId": "Mengembangkan modul ERP Petrokimia Gresik (Nisa), sistem informasi proyek PT Wijaya Karya (WIKA SIP), dan portal Universitas Pertamina."
                 },
                 {
-                    "title": "IoT & Real-Time Sensor Telemetry",
-                    "descEn": "Built data ingestion and monitoring backend for the Suramadu Bridge telemetry project, processing and visualizing real-time structural sensor metrics.",
-                    "descId": "Membangun backend ingestion data dan monitoring untuk proyek sensor telemetri Jembatan Suramadu, memproses dan memvisualisasikan metrik struktural real-time."
+                    "title": "Pipeline Telemetri IoT Sensor",
+                    "descEn": "Built data ingestion backend for Suramadu Bridge telemetry system to capture and monitor structural vibration & environmental data.",
+                    "descId": "Membangun backend data ingestion untuk proyek sensor telemetri Jembatan Suramadu guna memantau getaran struktural dan cuaca."
                 },
                 {
-                    "title": "Database Performance & Server Deployments",
-                    "descEn": "Managed Virtual Machine (VM) deployments, database query performance optimization on PostgreSQL, and delivered rapid hotfixes and customer maintenance.",
-                    "descId": "Mengelola deployment server Virtual Machine (VM), optimasi performa query PostgreSQL, serta penanganan bugfix dan pemeliharaan klien."
+                    "title": "Deployment & Optimasi Database",
+                    "descEn": "Managed VM server deployments, query optimization on PostgreSQL, and delivered ongoing bugfixes & maintenance.",
+                    "descId": "Mengelola deployment server Virtual Machine, optimasi query database PostgreSQL, serta pemeliharaan rutin aplikasi."
                 }
             ],
-            "techStack": ["PHP", "Laravel", "PostgreSQL", "JavaScript", "HTML5", "Bootstrap", "REST APIs", "Virtual Machines", "Git", "IoT Telemetry"]
+            "techStack": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "JavaScript",
+                "HTML5",
+                "Bootstrap",
+                "REST APIs",
+                "Virtual Machines",
+                "Git"
+            ]
         }
     ],
     "education": [
@@ -205,38 +289,163 @@ DEFAULT_PROFILE_DATA = {
             "degreeId": "Sarjana Komputer (S.Kom) - Teknik Informatika",
             "period": "2014 – 2018",
             "location": "Surabaya, Indonesia",
-            "descEn": "Focused on Software Engineering, Database Systems, Computer Networks, and Distributed Computing.",
+            "descEn": "Studied Software Engineering, Database Systems, Computer Networks, and Distributed Computing.",
             "descId": "Fokus pada Rekayasa Perangkat Lunak, Sistem Basis Data, Jaringan Komputer, dan Komputasi Terdistribusi."
         }
     ],
     "projects": [
         {
-            "title": "Cloudraya V2 Cloud Infrastructure Platform",
-            "tagline": "Enterprise IaaS & PaaS Cloud Engine",
-            "role": "Core Backend Architect",
-            "descEn": "High-scale multi-region cloud infrastructure management system orchestrating virtual machines, S3 storage, managed Kubernetes, and real-time billing meters.",
-            "descId": "Platform manajemen infrastruktur cloud multi-region skala enterprise yang mengorkestrasi VM, S3 storage, Kubernetes terkelola, dan metering billing real-time.",
-            "tech": ["Laravel", "Go", "PostgreSQL", "Redis", "Kubernetes", "CloudStack", "WebSockets"],
-            "badge": "Production Cloud Platform",
+            "title": "Cloudraya V2 Cloud Platform",
+            "tagline": "High-Throughput IaaS & PaaS Engine",
+            "role": "Core Backend Engineer",
+            "descEn": "Enterprise multi-region cloud infrastructure platform orchestrating VM & Bare-Metal lifecycles, S3-compatible object storage, managed Kubernetes clusters, and automated real-time usage billing pipelines.",
+            "descId": "Platform manajemen infrastruktur cloud multi-region skala enterprise yang mengorkestrasi siklus hidup Virtual Machine & Bare-Metal, S3 Object Storage berkinerja tinggi, kluster Kubernetes terkelola, serta pipeline otomasi metering & billing real-time.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "Go",
+                "PostgreSQL",
+                "Redis",
+                "Kubernetes",
+                "CloudStack",
+                "WebSockets"
+            ],
+            "badge": "Cloud Platform",
             "link": "https://panel.cloudraya.com/"
         },
         {
-            "title": "Suramadu Bridge IoT Telemetry System",
-            "tagline": "High-Frequency Sensor Data Ingestion",
-            "role": "Backend & Telemetry Engineer",
-            "descEn": "Real-time IoT telemetry pipeline capturing, aggregating, and visualizing structural vibration, strain, and environmental sensor metrics from Suramadu Bridge.",
-            "descId": "Pipeline telemetri IoT real-time untuk menangkap, mengagregasi, dan memvisualisasikan data sensor getaran, tegangan struktural, dan cuaca Jembatan Suramadu.",
-            "tech": ["PHP", "Laravel", "PostgreSQL", "Time-Series Ingestion", "REST APIs"],
-            "badge": "Enterprise IoT Solution"
+            "title": "Suramadu Bridge IoT Telemetry",
+            "tagline": "Real-time Structural & Environmental Ingestion",
+            "role": "Backend Engineer",
+            "descEn": "High-throughput data ingestion backend capturing real-time structural vibration and environmental sensor metrics for the Suramadu Bridge to support structural health monitoring.",
+            "descId": "Pipeline data ingestion dan monitoring getaran struktural serta sensor cuaca Jembatan Suramadu secara real-time untuk menjamin keamanan & ketahanan infrastruktur vital nasional.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "REST APIs",
+                "Time-Series"
+            ],
+            "badge": "IoT Telemetry"
+        },
+        {
+            "title": "Surabaya Pump Station & Heavy Equipment Asset Management",
+            "tagline": "Asset Monitoring & Flood Control System",
+            "role": "Backend Programmer",
+            "descEn": "High-performance RESTful API backend engineered for Surabaya City Government to monitor flood-control water pump stations and municipal heavy equipment fleets across Web & Mobile platforms.",
+            "descId": "RESTful API berkinerja tinggi untuk monitoring aset rumah pompa air pengendali banjir dan armada alat berat Pemerintah Kota Surabaya secara real-time antar platform Web & Mobile.",
+            "tech": [
+                "PHP",
+                "Lumen",
+                "PostgreSQL",
+                "REST APIs",
+                "Mobile Integration"
+            ],
+            "badge": "Government Portal"
+        },
+        {
+            "title": "Surabaya Municipal Infrastructure Proposal & Survey System",
+            "tagline": "Field Survey & Project Approval Workflow",
+            "role": "Backend API Engineer",
+            "descEn": "Mobile-focused backend API automating field feasibility surveys, hierarchical approval workflows, and task dispatching to municipal task forces for Surabaya City infrastructure proposals.",
+            "descId": "Sistem backend survei lapangan dan approval berjenjang untuk usulan proyek infrastruktur perkotaan dan permukiman Pemkot Surabaya, mengotomasi distribusi penugasan langsung ke satgas teknis.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "MySQL",
+                "REST APIs",
+                "Mobile Integration"
+            ],
+            "badge": "Smart Governance"
+        },
+        {
+            "title": "Dishub Surabaya E-Surat & Official Letter Allocation Engine",
+            "tagline": "Centralized Document Registry & Audit System",
+            "role": "Backend API Engineer",
+            "descEn": "Centralized digital registry and official letter allocation engine integrated with Surabaya Transportation Agency's E-Surat portal, featuring comprehensive usage auditing across departments.",
+            "descId": "Engine penomoran surat resmi digital terpusat yang terintegrasi dengan portal E-Surat Dinas Perhubungan Surabaya, dilengkapi audit trail pemakaian nomor surat per bidang/satuan kerja.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "E-Surat Integration",
+                "REST APIs"
+            ],
+            "badge": "Public Sector"
+        },
+        {
+            "title": "Petrokimia Gresik NISA - Market & Competitor Intelligence",
+            "tagline": "Agricultural Market & Competitor Monitoring",
+            "role": "Semi Full-Stack Developer",
+            "descEn": "Market intelligence and competitor monitoring platform for PT Petrokimia Gresik, analyzing regional fertilizer distribution dynamics, pricing movements, and field sales reporting.",
+            "descId": "Sistem monitoring pasar dan intelijen kompetitor industri pupuk untuk PT Petrokimia Gresik guna memetakan tren harga, pergerakan produk rival, dan persebaran distribusi pasar regional.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "JavaScript",
+                "Analytics"
+            ],
+            "badge": "Enterprise Intelligence"
+        },
+        {
+            "title": "WIKA SIP - Construction Project Resource & Finance Engine",
+            "tagline": "Project Planning, Logistics & Cashflow Engine",
+            "role": "Backend Developer",
+            "descEn": "Core backend services for PT Wijaya Karya (WIKA) Tbk Project Information System, handling construction material planning, equipment logistics, and multi-tier vendor disbursement workflows.",
+            "descId": "Backend core Sistem Informasi Proyek (SIP) PT Wijaya Karya (WIKA) Tbk untuk orkestrasi kebutuhan alat/material, pemantauan progres lapangan, dan otomasi manajemen pembayaran vendor.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "REST APIs",
+                "Mobile & Web"
+            ],
+            "badge": "Construction ERP"
+        },
+        {
+            "title": "CuddleMe Dodolo E-Commerce Back-Office Portal",
+            "tagline": "Product Catalog & Logistics Automation",
+            "role": "Semi Full-Stack Developer",
+            "descEn": "Back-office administration and inventory management system for CuddleMe baby products (Dodolo), featuring automated logistics rate calculations via RajaOngkir API and payment reconciliation.",
+            "descId": "Portal administrasi e-commerce brand perlengkapan bayi CuddleMe (Dodolo), mencakup otomasi kalkulasi tarif ekspedisi (RajaOngkir API), verifikasi pembayaran, dan manajemen inventaris produk.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "RajaOngkir API",
+                "Order Management"
+            ],
+            "badge": "E-Commerce ERP"
+        },
+        {
+            "title": "Universitas Pertamina Research Grant Funding Portal",
+            "tagline": "Research Grants & Budget Disbursement Portal",
+            "role": "Backend API Engineer",
+            "descEn": "RESTful API backend powering Universitas Pertamina's research grant management portal, facilitating grant proposal submissions, peer-review cycles, and budget disbursement tracking.",
+            "descId": "Backend REST API sistem manajemen pendanaan riset ilmiah Universitas Pertamina, mencakup siklus pengajuan proposal, telaah peer-review, hingga realisasi pencairan dana penelitian.",
+            "tech": [
+                "PHP",
+                "Laravel",
+                "PostgreSQL",
+                "REST APIs"
+            ],
+            "badge": "Academic System"
         },
         {
             "title": "Omni Command Center & Storage Vault",
-            "tagline": "Personal Cloud Server & Knowledge Hub",
+            "tagline": "Personal Server Dashboard & Hub",
             "role": "Full-Stack Creator",
-            "descEn": "Hardened server dashboard and secure storage vault featuring real-time system telemetry via WebSockets, Obsidian Second Brain memory graph, and BMKG early warning integration.",
-            "descId": "Dashboard server dan vault storage pribadi dengan telemetri WebSocket real-time, graf pengetahuan Second Brain Obsidian, dan integrasi peringatan dini BMKG.",
-            "tech": ["FastAPI", "React 19", "SQLite WAL", "Tailwind CSS", "WebSockets"],
-            "badge": "Private Server Hub",
+            "descEn": "Hardened server dashboard and private vault with real-time system metrics via WebSockets, Obsidian Second Brain sync, and BMKG earthquake warnings.",
+            "descId": "Dashboard server dan vault pribadi dengan pemantauan metrik server via WebSocket, sinkronisasi Obsidian Second Brain, dan peringatan dini BMKG.",
+            "tech": [
+                "FastAPI",
+                "React 19",
+                "SQLite WAL",
+                "Tailwind CSS",
+                "WebSockets"
+            ],
+            "badge": "Private Vault",
             "link": "https://dashboard.arusuka.my.id"
         }
     ]

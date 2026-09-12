@@ -1,6 +1,7 @@
 export default {
   // Navigation & Sidebar
   nav_overview: "Overview",
+  nav_sessions: "AI Logs",
   nav_profile: "Profile & CV",
   nav_storage: "Storage Vault",
   nav_tasks: "Personal Tasks",
@@ -70,6 +71,7 @@ export default {
   overview_fitness_title: "Fitness & Daily Activity",
   overview_fitness_sync: "Zepp Synced",
   overview_today_steps: "Steps Today",
+  overview_today_goal: "Goal",
   overview_today_calorie: "kcal",
   overview_last_sleep: "Last Night Sleep",
   overview_view_fitness: "View Fitness Analytics",

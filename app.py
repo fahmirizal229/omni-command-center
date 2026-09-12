@@ -28,6 +28,8 @@ from backend.routes.weather import router as weather_router
 from backend.routes.zepp import router as zepp_router
 from backend.routes.schedules import router as schedules_router
 from backend.routes.portfolio import router as portfolio_router
+from backend.routes.sessions import router as sessions_router
+from backend.routes.miniapp import router as miniapp_router
 
 
 @asynccontextmanager
@@ -66,6 +68,7 @@ app.add_middleware(
 )
 
 # Mount API Routers
+app.include_router(miniapp_router)
 app.include_router(auth_router)
 app.include_router(overview_router)
 app.include_router(storage_router)
@@ -76,6 +79,7 @@ app.include_router(weather_router)
 app.include_router(zepp_router)
 app.include_router(schedules_router)
 app.include_router(portfolio_router)
+app.include_router(sessions_router)
 
 
 # --- Real-Time WebSocket Endpoints ---

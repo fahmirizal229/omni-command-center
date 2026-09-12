@@ -1,91 +1,363 @@
 /**
  * @file Sidebar.jsx
- * @description Sub-navigation bar component for switching dashboard module views.
- * Supports both desktop horizontal bar and mobile bottom navigation with i18n support.
+ * @description Modern, sleek Left Sidebar Navigation for Arusuka Command Center.
+ * Features grouped navigation, responsive mobile drawer, realtime WS telemetry status,
+ * language toggle, and account actions.
  */
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard,
   CheckSquare,
-  Briefcase,
-  Brain,
-  CloudSun,
   Activity,
-  CalendarClock,
+  CloudSun,
+  Brain,
+  Briefcase,
   HardDrive,
-  UserCheck
+  CalendarClock,
+  UserCheck,
+  RefreshCw,
+  KeyRound,
+  LogOut,
+  ExternalLink,
+  Sparkles,
+  ChevronRight,
+  MessageSquareCode,
+  Menu,
+  X,
+  Radio
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { useLanguage } from "../context/LanguageContext";
 
-export const TAB_DEFINITIONS = [
-  { id: "overview", labelKey: "nav_overview", defaultLabel: "Ringkasan", icon: LayoutDashboard },
-  { id: "profile", labelKey: "nav_profile", defaultLabel: "Profil & CV", icon: UserCheck },
-  { id: "storage", labelKey: "nav_storage", defaultLabel: "File & Foto", icon: HardDrive },
-  { id: "tasks", labelKey: "nav_tasks", defaultLabel: "Tugas Pribadi", icon: CheckSquare },
-  { id: "jobs", labelKey: "nav_jobs", defaultLabel: "Pelacak Karir", icon: Briefcase },
-  { id: "brain", labelKey: "nav_brain", defaultLabel: "Second Brain", icon: Brain },
-  { id: "weather", labelKey: "nav_weather", defaultLabel: "Cuaca & Gempa", icon: CloudSun },
-  { id: "zepp", labelKey: "nav_zepp", defaultLabel: "Kebugaran", icon: Activity },
-  { id: "schedules", labelKey: "nav_schedules", defaultLabel: "Jadwal Otomasi", icon: CalendarClock },
+export const NAVIGATION_GROUPS = [
+  {
+    titleKey: "group_core",
+    defaultTitle: "Utama & AI",
+    items: [
+      { id: "overview", labelKey: "nav_overview", defaultLabel: "Ringkasan", icon: LayoutDashboard, color: "text-indigo-400" },
+      { id: "sessions", labelKey: "nav_sessions", defaultLabel: "AI Logs & Chat", icon: MessageSquareCode, color: "text-sky-400" },
+      { id: "brain", labelKey: "nav_brain", defaultLabel: "Second Brain", icon: Brain, color: "text-purple-400" },
+    ]
+  },
+  {
+    titleKey: "group_productivity",
+    defaultTitle: "Produktivitas & Karir",
+    items: [
+      { id: "tasks", labelKey: "nav_tasks", defaultLabel: "Tugas & Kanban", icon: CheckSquare, color: "text-amber-400" },
+      { id: "jobs", labelKey: "nav_jobs", defaultLabel: "Karir & Radar", icon: Briefcase, color: "text-emerald-400" },
+      { id: "zepp", labelKey: "nav_zepp", defaultLabel: "Kebugaran & Tidur", icon: Activity, color: "text-rose-400" },
+      { id: "weather", labelKey: "nav_weather", defaultLabel: "Radar Cuaca BMKG", icon: CloudSun, color: "text-cyan-400" },
+    ]
+  },
+  {
+    titleKey: "group_system",
+    defaultTitle: "Sistem & Vault",
+    items: [
+      { id: "storage", labelKey: "nav_storage", defaultLabel: "Storage Vault", icon: HardDrive, color: "text-blue-400" },
+      { id: "schedules", labelKey: "nav_schedules", defaultLabel: "Otomasi & Cron", icon: CalendarClock, color: "text-yellow-400" },
+      { id: "profile", labelKey: "nav_profile", defaultLabel: "Editor CV & Profil", icon: UserCheck, color: "text-pink-400" },
+    ]
+  }
 ];
 
-/**
- * Secondary navigation bar component.
- * @param {{ activeTab: string, onTabChange: (tabId: string) => void }} props
- */
-export function Sidebar({ activeTab, onTabChange }) {
-  const { t } = useLanguage();
+export function Sidebar({ activeTab, onTabChange, onRefresh, refreshing, onOpenChangePassword }) {
+  const { username, logout } = useAuth();
+  const { wsStatus } = useWebSocket();
+  const { language, setLanguage, t, supportedLanguages } = useLanguage();
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [userMenuOpen]);
+
+  // Close mobile drawer on route change
+  const handleNavClick = (id) => {
+    onTabChange(id);
+    setMobileOpen(false);
+  };
+
+  // Find active label for mobile header
+  const getActiveTabLabel = () => {
+    for (const group of NAVIGATION_GROUPS) {
+      const match = group.items.find((item) => item.id === activeTab);
+      if (match) return t(match.labelKey, match.defaultLabel);
+    }
+    return "Dashboard";
+  };
+
+  const SidebarContent = (
+    <div className="flex flex-col h-full select-none">
+      {/* 1. Header / Brand Identity */}
+      <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
+        <a
+          href="https://arusuka.my.id"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5 group"
+          title="Buka Web Utama (arusuka.my.id)"
+        >
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-sm text-white tracking-tight group-hover:text-indigo-300 transition-colors">
+                Arusuka
+              </span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                OMNI
+              </span>
+            </div>
+            <p className="text-[10px] text-zinc-400 font-mono">Command Center</p>
+          </div>
+        </a>
+
+        {/* Mobile Close Button */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(false)}
+          className="md:hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.08]"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* 2. Live Telemetry & Status Banner */}
+      <div className="px-4 py-2.5 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            {wsStatus === "connected" && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 ${
+                wsStatus === "connected" ? "bg-emerald-400" : wsStatus === "connecting" ? "bg-amber-400" : "bg-zinc-500"
+              }`}
+            />
+          </span>
+          <span className="text-[11px] font-mono font-semibold tracking-wider uppercase text-zinc-300">
+            {wsStatus === "connected" ? "Telemetry LIVE" : wsStatus === "connecting" ? "Connecting..." : "Offline"}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={onRefresh}
+          title="Segarkan Data"
+          className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-indigo-400" : ""}`} />
+        </button>
+      </div>
+
+      {/* 3. Grouped Navigation Links (Scrollable) */}
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-5 custom-scrollbar">
+        {NAVIGATION_GROUPS.map((group, gIdx) => (
+          <div key={gIdx} className="space-y-1">
+            <h4 className="px-2.5 text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-300">
+              {t(group.titleKey, group.defaultTitle)}
+            </h4>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                const label = t(item.labelKey, item.defaultLabel);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleNavClick(item.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 group ${
+                      isActive
+                        ? "bg-indigo-500/15 text-white border border-indigo-500/30 shadow-sm shadow-indigo-500/10 font-semibold"
+                        : "text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.06] border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon
+                        className={`w-4 h-4 shrink-0 transition-transform ${
+                          isActive ? "text-indigo-400 scale-110" : `${item.color} group-hover:scale-110`
+                        }`}
+                      />
+                      <span className="truncate">{label}</span>
+                    </div>
+
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8] shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* 4. Footer Controls & User Account */}
+      <div className="p-3 border-t border-white/[0.08] space-y-2 bg-[#070913]/60 relative">
+        {/* Account Menu Popover */}
+        {userMenuOpen && (
+          <div
+            ref={menuRef}
+            className="absolute bottom-full left-3 right-3 mb-2 rounded-xl bg-[#0e111d] border border-white/[0.12] p-2 shadow-2xl ring-1 ring-white/[0.08] z-50 animate-fadeIn text-xs"
+          >
+            <div className="px-2.5 py-1.5 border-b border-white/[0.08] mb-1">
+              <p className="font-bold text-white truncate">{username}</p>
+              <p className="text-[10px] text-zinc-400 font-mono">Arusuka Workspace</p>
+            </div>
+
+            <a
+              href="https://arusuka.my.id"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Web Utama</span>
+              </span>
+              <span className="text-[10px] text-zinc-500 font-mono">arusuka.my.id</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                onOpenChangePassword();
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors text-left"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span>{t("btn_change_password", "Ganti Password")}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen(false);
+                if (confirm(t("logout_confirm", "Apakah kamu yakin ingin keluar?"))) {
+                  logout();
+                }
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-left"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>{t("btn_logout", "Keluar")}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Language Switcher */}
+        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span className="text-[11px] font-mono text-zinc-400">Bahasa:</span>
+          <div className="flex items-center gap-1">
+            {supportedLanguages.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setLanguage(lang.code)}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold transition-colors ${
+                  language === lang.code
+                    ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {lang.shortLabel}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* User Profile Pill Button */}
+        <button
+          type="button"
+          onClick={() => setUserMenuOpen((prev) => !prev)}
+          className="w-full flex items-center justify-between p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-colors"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-xs font-bold text-white shadow-sm shrink-0">
+              {username ? username.charAt(0).toUpperCase() : "A"}
+            </div>
+            <div className="text-left truncate">
+              <p className="text-xs font-semibold text-white truncate">{username || "Akun"}</p>
+              <p className="text-[10px] text-zinc-400 font-mono truncate">Pengaturan</p>
+            </div>
+          </div>
+          <ChevronRight className={`w-4 h-4 text-zinc-400 transition-transform ${userMenuOpen ? "rotate-90" : ""}`} />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
-      {/* Desktop Navigation Bar */}
-      <nav className="bg-[#0c0d11]/80 border-b border-zinc-800 px-4 lg:px-8 py-2 overflow-x-auto custom-scrollbar flex items-center space-x-1 shrink-0">
-        {TAB_DEFINITIONS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const label = t(tab.labelKey, tab.defaultLabel);
+      {/* 1. Mobile Top Header Bar */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#0a0d18]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 flex items-center justify-between z-40">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="p-1.5 rounded-lg text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-colors"
+            aria-label="Buka Menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm text-white">{getActiveTabLabel()}</span>
+          </div>
+        </div>
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-2 shrink-0 ${
-                isActive
-                  ? "text-zinc-100 bg-zinc-800 border border-zinc-700/80 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 border border-transparent"
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            {wsStatus === "connected" && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 ${
+                wsStatus === "connected" ? "bg-emerald-400" : "bg-zinc-500"
               }`}
-            >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? "text-zinc-200" : "text-zinc-500"}`} />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-      </nav>
+            />
+          </span>
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-xs font-bold text-white">
+            {username ? username.charAt(0).toUpperCase() : "A"}
+          </div>
+        </div>
+      </header>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121215]/95 backdrop-blur-md border-t border-zinc-800 px-2 py-1.5 flex items-center justify-around shadow-xl">
-        {TAB_DEFINITIONS.slice(0, 5).map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const label = t(tab.labelKey, tab.defaultLabel);
+      {/* 2. Mobile Drawer Backdrop & Sidebar */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fadeIn"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="w-72 h-full bg-[#0a0d18] border-r border-white/[0.1] shadow-2xl animate-slideRight"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {SidebarContent}
+          </div>
+        </div>
+      )}
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-all ${
-                isActive ? "text-zinc-100 font-semibold" : "text-zinc-400 hover:text-zinc-200"
-              }`}
-            >
-              <Icon className={`w-4 h-4 mb-0.5 ${isActive ? "text-zinc-100" : "text-zinc-500"}`} />
-              <span className="text-[10px] leading-tight truncate max-w-[60px]">{label.split(" ")[0]}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* 3. Desktop Static Left Sidebar */}
+      <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-64 lg:w-72 bg-[#0a0d18]/95 backdrop-blur-3xl border-r border-white/[0.08] z-40 flex-col shadow-2xl">
+        {SidebarContent}
+      </aside>
     </>
   );
 }

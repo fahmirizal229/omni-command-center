@@ -311,3 +311,32 @@ def get_system_metrics(current_user: str = Depends(get_current_user)):
         },
         "security": fail2ban_info
     }
+
+
+@router.get("/public/status")
+def get_public_system_status():
+    """
+    Lightweight public health & system status endpoint.
+    Zero sensitive data exposure. Safe for landing page or public uptime monitoring.
+    """
+    boot_time = psutil.boot_time()
+    uptime_sec = time.time() - boot_time
+    mem = psutil.virtual_memory()
+
+    return {
+        "status": "operational",
+        "service": "Arusuka Core Infrastructure",
+        "timestamp": datetime.now().isoformat(),
+        "uptime": format_uptime(uptime_sec),
+        "uptime_seconds": int(uptime_sec),
+        "nodes": {
+            "web_gateway": "online",
+            "api_server": "online",
+            "database_engine": "online",
+            "realtime_telemetry": "online"
+        },
+        "metrics": {
+            "cpu_percent": psutil.cpu_percent(interval=0.05),
+            "memory_percent": mem.percent
+        }
+    }
