@@ -447,3 +447,82 @@ def get_session_detail(session_id: str, current_user: str = Depends(get_current_
             pass
 
     raise HTTPException(status_code=404, detail="Session transcript not found")
+
+
+@router.post("/prune")
+def prune_old_sessions(days: int = Query(7, ge=1), current_user: str = Depends(get_current_user)):
+    """Prune conversation logs and transcripts older than specified days."""
+    import shutil
+    cutoff_ts = time.time() - (days * 86400)
+    pruned_count = 0
+
+    # 1. Prune AGY transcript folders older than days
+    if AGY_BRAIN_DIR.exists():
+        for conv_dir in AGY_BRAIN_DIR.iterdir():
+            if not conv_dir.is_dir():
+                continue
+            # Keep active conversation
+            if "f544a3b4" in conv_dir.name:
+                continue
+            try:
+                t_file = conv_dir / ".system_generated" / "logs" / "transcript.jsonl"
+                if t_file.exists() and t_file.stat().st_mtime < cutoff_ts:
+                    shutil.rmtree(conv_dir, ignore_errors=True)
+                    pruned_count += 1
+            except Exception:
+                pass
+
+    # 2. Prune Hermes logs if available
+    if ROUTER_DB.exists():
+        try:
+            rconn = sqlite3.connect(str(ROUTER_DB))
+            rcur = rconn.cursor()
+            cutoff_iso = datetime.fromtimestamp(cutoff_ts).isoformat()
+            rcur.execute("DELETE FROM llm_router_logs WHERE timestamp < ?", (cutoff_iso,))
+            rconn.commit()
+            rconn.close()
+        except Exception:
+            pass
+
+    return {
+        "success": True,
+        "message": f"Berhasil membersihkan {pruned_count} riwayat log sesi tidak aktif (> {days} hari).",
+        "pruned_count": pruned_count
+    }
+
+
+@router.post("/clear")
+def clear_all_sessions(current_user: str = Depends(get_current_user)):
+    """Clear all old inactive conversation logs from server."""
+    import shutil
+    cleared_count = 0
+
+    if AGY_BRAIN_DIR.exists():
+        for conv_dir in AGY_BRAIN_DIR.iterdir():
+            if not conv_dir.is_dir():
+                continue
+            # Keep active conversation
+            if "f544a3b4" in conv_dir.name:
+                continue
+            try:
+                shutil.rmtree(conv_dir, ignore_errors=True)
+                cleared_count += 1
+            except Exception:
+                pass
+
+    if ROUTER_DB.exists():
+        try:
+            rconn = sqlite3.connect(str(ROUTER_DB))
+            rcur = rconn.cursor()
+            rcur.execute("DELETE FROM llm_router_logs")
+            rconn.commit()
+            rconn.close()
+        except Exception:
+            pass
+
+    return {
+        "success": True,
+        "message": f"Berhasil mengosongkan {cleared_count} riwayat log sesi AI.",
+        "cleared_count": cleared_count
+    }
+

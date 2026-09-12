@@ -139,11 +139,11 @@ export const api = {
   /** Fetch detailed message turns for a specific session */
   getSessionDetail: (sessionId) => request(`/sessions/${sessionId}`),
   /** Fetch multi-LLM comparative analytics and quota metrics */
-  getModelAnalytics: () => request("/sessions/analytics/models"),
+  getModelAnalytics: () => request("/sessions/analytics"),
   /** Purge chat sessions older than N days (default 7) */
   pruneSessions: (days = 7) => request(`/sessions/prune?days=${days}`, { method: "POST" }),
   /** Hard reset all conversation sessions and LLM logs */
-  resetSessions: () => request("/sessions/reset", { method: "POST" }),
+  clearSessions: () => request("/sessions/clear", { method: "POST" }),
 
   // --- Career & Job Hunter Tracker ---
   /** Get career applications pipeline */

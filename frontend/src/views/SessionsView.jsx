@@ -35,7 +35,8 @@ import {
   Code2,
   CheckCircle2,
   Wrench,
-  Brain
+  Brain,
+  Trash2
 } from 'lucide-react';
 import { api } from '../api';
 import { useToast } from '../context/ToastContext';
@@ -129,6 +130,38 @@ export function SessionsView() {
     setExpandedThinking((prev) => ({ ...prev, [turnId]: !prev[turnId] }));
   };
 
+  const handlePruneLogs = async (days = 7) => {
+    if (!window.confirm(`Hapus seluruh riwayat log AI yang tidak aktif lebih dari ${days} hari?`)) return;
+    try {
+      setRefreshing(true);
+      const res = await api.pruneSessions(days);
+      showToast(res.message || 'Log berhasil dibersihkan', 'success');
+      setSelectedSessionId(null);
+      setSessionDetail(null);
+      loadData(true);
+    } catch (err) {
+      showToast(err.message || 'Gagal membersihkan log', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!window.confirm('PERINGATAN: Kosongkan seluruh riwayat log percakapan AI dari server? Tindakan ini tidak dapat dibatalkan.')) return;
+    try {
+      setRefreshing(true);
+      const res = await api.clearSessions();
+      showToast(res.message || 'Seluruh log berhasil dikosongkan', 'success');
+      setSelectedSessionId(null);
+      setSessionDetail(null);
+      loadData(true);
+    } catch (err) {
+      showToast(err.message || 'Gagal mengosongkan log', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Helper format token count
   const formatTokens = (num) => {
     if (!num) return '0';
@@ -164,7 +197,27 @@ export function SessionsView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handlePruneLogs(7)}
+              disabled={refreshing}
+              className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+              title="Bersihkan log percakapan tidak aktif lebih dari 7 hari"
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Bersihkan &gt; 7 Hari</span>
+            </button>
+
+            <button
+              onClick={handleClearLogs}
+              disabled={refreshing}
+              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+              title="Kosongkan seluruh riwayat log percakapan AI"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Kosongkan Log</span>
+            </button>
+
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
