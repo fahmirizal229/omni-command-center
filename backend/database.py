@@ -18,7 +18,7 @@ DEFAULT_PROFILE_DATA = {
         "whatsapp": "https://wa.me/6282134715478",
         "linkedin": "https://www.linkedin.com/in/fahmi-rizal",
         "github": "https://github.com/fahmirizal229",
-        "telegram": "https://t.me/fahmirizal96",
+        "telegram": "https://t.me/fahmi_rizal",
         "website": "https://arusuka.my.id",
         "dashboardUrl": "https://dashboard.arusuka.my.id"
     },

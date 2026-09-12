@@ -78,7 +78,7 @@ def parse_crontab() -> List[Dict[str, Any]]:
                     "category": "Personal & Lifestyle",
                     "badge_color": "amber",
                     "status": "active",
-                    "target": "Telegram (@fahmirizal96)",
+                    "target": "Telegram (@fahmi_rizal)",
                     "description": "Kartu briefing pagi terpadu yang merangkum cuaca Surabaya, indeks kualitas udara (AQI BMKG), kesehatan server (RAM/Disk/Uptime), dan sapaan semangat hari ini.",
                     "next_run": "Besok, 07:00 WIB"
                 })
@@ -93,7 +93,7 @@ def parse_crontab() -> List[Dict[str, Any]]:
                     "category": "Server Security",
                     "badge_color": "rose",
                     "status": "active",
-                    "target": "Telegram (@fahmirizal96)",
+                    "target": "Telegram (@fahmi_rizal)",
                     "description": "Inspeksi kontinu pemakaian RAM (>88%), Root Disk (>85%), dan CPU Load. Otomatis mengirimkan alert darurat jika ada lonjakan kritis di luar jadwal rutin.",
                     "next_run": "Setiap 5 Menit"
                 })
@@ -108,7 +108,7 @@ def parse_crontab() -> List[Dict[str, Any]]:
                     "category": "Personal Growth",
                     "badge_color": "purple",
                     "status": "active",
-                    "target": "Telegram (@fahmirizal96)",
+                    "target": "Telegram (@fahmi_rizal)",
                     "description": "Sesi check-in malam hari dan pengingat istirahat/tidur.",
                     "next_run": "Besok, 22:00 WIB"
                 })
@@ -198,7 +198,7 @@ def parse_hermes_jobs() -> List[Dict[str, Any]]:
             "category": cat,
             "badge_color": badge,
             "status": "active",
-            "target": "Telegram (@fahmirizal96)",
+            "target": "Telegram (@fahmi_rizal)",
             "description": desc,
             "next_run": next_run_str
         })
@@ -261,7 +261,7 @@ def get_system_schedules(current_user: str = Depends(get_current_user)):
         "category": "Disaster Early Warning",
         "badge_color": "rose",
         "status": "active" if guardian.get("active") else "inactive",
-        "target": "Telegram (@fahmirizal96)",
+        "target": "Telegram (@fahmi_rizal)",
         "description": "Memantau API TEWS BMKG non-stop setiap 45 detik, menghitung radius jarak gempa ke Surabaya (-7.2575, 112.7521), dan otomatis mengirimkan peringatan darurat instan + foto Shakemap ke Telegram jika terdeteksi gempa baru.",
         "next_run": f"Real-time (Active {guardian.get('uptime', '24/7')})" if guardian.get("active") else "Offline"
     })
