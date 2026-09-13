@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 
@@ -16,6 +17,7 @@ from backend.config import HOME_DIR
 from backend.database import init_task_db
 from backend.websocket import ws_manager, realtime_telemetry_loop
 from backend.security import verify_session_token
+from backend.retention_cleaner import clean_retention
 
 # Import modular routes
 from backend.routes.auth import router as auth_router
@@ -32,16 +34,30 @@ from backend.routes.sessions import router as sessions_router
 from backend.routes.miniapp import router as miniapp_router
 
 
+async def auto_retention_loop():
+    """Run log retention cleanup automatically every 24 hours."""
+    while True:
+        try:
+            await asyncio.sleep(86400)
+            clean_retention(days=7, verbose=False)
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for application startup and background tasks."""
     init_task_db()
     telemetry_task = asyncio.create_task(realtime_telemetry_loop())
+    retention_task = asyncio.create_task(auto_retention_loop())
     yield
     telemetry_task.cancel()
+    retention_task.cancel()
     try:
-        await telemetry_task
-    except asyncio.CancelledError:
+        await asyncio.gather(telemetry_task, retention_task, return_exceptions=True)
+    except Exception:
         pass
 
 
@@ -51,6 +67,9 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# GZip Compression Middleware (minimum 1KB payload)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # CORS Configuration (Strict Whitelist)
 app.add_middleware(
@@ -113,37 +132,51 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # --- SPA Static Assets & Frontend Serving ---
 
-DIST_DIR = HOME_DIR / "dashboard" / "frontend" / "dist"
+class CachedStaticFiles(StaticFiles):
+    """Static file handler that adds aggressive immutable caching for hashed assets."""
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+DIST_DIR = HOME_DIR / "dashboard" / "dist_ui"
+if not DIST_DIR.exists():
+    DIST_DIR = HOME_DIR / "dashboard" / "frontend" / "dist"
 if not DIST_DIR.exists():
     DIST_DIR = HOME_DIR / "dashboard" / "dist"
 STATIC_DIR = HOME_DIR / "dashboard" / "static"
 
 if (DIST_DIR / "assets").exists():
-    app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
+    app.mount("/assets", CachedStaticFiles(directory=str(DIST_DIR / "assets")), name="assets")
 elif (STATIC_DIR / "assets").exists():
-    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
+    app.mount("/assets", CachedStaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
 
 
 @app.get("/favicon.ico")
 def favicon():
     if (DIST_DIR / "favicon.ico").exists():
-        return FileResponse(str(DIST_DIR / "favicon.ico"))
+        return FileResponse(str(DIST_DIR / "favicon.ico"), headers={"Cache-Control": "public, max-age=86400"})
     return HTMLResponse("", status_code=204)
 
 
 @app.get("/manifest.json")
 def manifest():
     if (DIST_DIR / "manifest.json").exists():
-        return FileResponse(str(DIST_DIR / "manifest.json"))
+        return FileResponse(str(DIST_DIR / "manifest.json"), headers={"Cache-Control": "public, max-age=86400"})
     return HTMLResponse("", status_code=404)
 
 
 @app.get("/")
 def serve_root():
-    """Serve built React SPA frontend index.html."""
+    """Serve built React SPA frontend index.html with no-cache so updates are immediately picked up."""
     index_file = DIST_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
+        return FileResponse(
+            str(index_file),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
     return HTMLResponse("<h1>Arusuka Command Center</h1><p>Frontend build not found.</p>")
 
 
@@ -156,7 +189,10 @@ def catch_all_spa(full_path: str):
     
     index_file = DIST_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(str(index_file))
+        return FileResponse(
+            str(index_file),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
     return HTMLResponse("<h1>Arusuka Command Center</h1><p>Frontend build not found.</p>", status_code=404)
 
 

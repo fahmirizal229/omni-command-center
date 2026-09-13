@@ -1,8 +1,8 @@
 /**
  * @file SessionsView.jsx
  * @description Redesigned AI Logs & LLM Token Usage Inspector.
- * Provides multi-model token accounting (Antigravity Gemini, DeepSeek-V3, Hermes Local),
- * visual token comparison, and interactive session transcript inspector.
+ * Provides per-message LLM identification, real-time agy-pool account synchronization,
+ * and interactive transcript inspector.
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -60,7 +60,8 @@ export function SessionsView() {
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [modelFilter, setModelFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [accountFilter, setAccountFilter] = useState('all');
   const [copiedId, setCopiedId] = useState(null);
   const [expandedThinking, setExpandedThinking] = useState({});
 
@@ -69,7 +70,11 @@ export function SessionsView() {
     else setRefreshing(true);
     try {
       const [sessRes, analRes] = await Promise.all([
-        api.getSessions({ search: searchQuery, model: modelFilter !== 'all' ? modelFilter : '' }).catch(() => ({ sessions: [] })),
+        api.getSessions({
+          search: searchQuery,
+          source: sourceFilter !== 'all' ? sourceFilter : '',
+          account: accountFilter !== 'all' ? accountFilter : ''
+        }).catch(() => ({ sessions: [] })),
         api.getModelAnalytics().catch(() => null)
       ]);
       const list = sessRes?.sessions || [];
@@ -86,7 +91,7 @@ export function SessionsView() {
 
   useEffect(() => {
     loadData();
-  }, [modelFilter]);
+  }, [sourceFilter, accountFilter]);
 
   // Load Session Turns on demand when selected or sort order changes
   const fetchSessionTurns = async (sessionId, order = sortOrder, offset = 0, append = false) => {
@@ -200,19 +205,6 @@ export function SessionsView() {
     }
   };
 
-  const handleAssignAccount = async (sessionId, targetAccountId) => {
-    try {
-      await api.assignSessionAccount(sessionId, targetAccountId);
-      showToast('Akun Antigravity sesi berhasil diperbarui', 'success');
-      loadData(true);
-      if (selectedSessionId === sessionId) {
-        fetchSessionTurns(sessionId, sortOrder, 0, false);
-      }
-    } catch (err) {
-      showToast(err.message || 'Gagal mengubah akun sesi', 'error');
-    }
-  };
-
   // Helper format token count
   const formatTokens = (num) => {
     if (!num) return '0';
@@ -222,8 +214,8 @@ export function SessionsView() {
   };
 
   const summary = analytics?.summary || { total_tokens: 0, total_sessions: 0, total_turns: 0, estimated_savings_usd: 0 };
-  const modelsList = analytics?.models || [];
   const accountsList = analytics?.accounts || [];
+  const modelsList = analytics?.models || [];
   const activeAccount = summary?.active_antigravity_account || {};
 
   return (
@@ -239,12 +231,13 @@ export function SessionsView() {
               <div>
                 <h2 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
                   <span>AI Logs & Multi-Account Inspector</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-800 text-indigo-300 font-mono border border-zinc-700">
-                    Live Telemetry
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Realtime agy-pool</span>
                   </span>
                 </h2>
                 <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
-                  Pantau riwayat percakapan dan audit token Antigravity terpisah per akun (Akun 1, 2, 3), DeepSeek-V3, dan Hermes Local.
+                  Audit percakapan AI & pembagian beban cluster 3 akun Antigravity Google One Pro secara realtime dari agy-pool.
                 </p>
               </div>
             </div>
@@ -282,7 +275,7 @@ export function SessionsView() {
           </div>
         </div>
 
-        {/* 2. Top Metric Cards - Multi Account Breakdown */}
+        {/* 2. Top Metric Cards - Live Sync from agy-pool */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
           {/* Total Tokens */}
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
@@ -298,47 +291,39 @@ export function SessionsView() {
             </p>
           </div>
 
-          {/* Antigravity Akun 1 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-indigo-900/40 space-y-1">
-            <div className="flex items-center justify-between text-indigo-400">
-              <span className="text-[11px] font-mono font-semibold">AGY Akun 1</span>
-              <Code2 className="w-3.5 h-3.5" />
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-indigo-300 font-mono">
-              {formatTokens(modelsList.find(m => m.id === 'antigravity_1')?.total_tokens || 0)}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono truncate" title="fahmijapan4@gmail.com">
-              fahmijapan4
-            </p>
-          </div>
-
-          {/* Antigravity Akun 2 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-purple-900/40 space-y-1">
-            <div className="flex items-center justify-between text-purple-400">
-              <span className="text-[11px] font-mono font-semibold">AGY Akun 2</span>
-              <Code2 className="w-3.5 h-3.5" />
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-purple-300 font-mono">
-              {formatTokens(modelsList.find(m => m.id === 'antigravity_2')?.total_tokens || 0)}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono truncate" title="shinhajiru@gmail.com">
-              shinhajiru
-            </p>
-          </div>
-
-          {/* Antigravity Akun 3 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-pink-900/40 space-y-1">
-            <div className="flex items-center justify-between text-pink-400">
-              <span className="text-[11px] font-mono font-semibold">AGY Akun 3</span>
-              <Code2 className="w-3.5 h-3.5" />
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-pink-300 font-mono">
-              {formatTokens(modelsList.find(m => m.id === 'antigravity_3')?.total_tokens || 0)}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono truncate" title="fahmirizal25248@gmail.com">
-              fahmirizal25248
-            </p>
-          </div>
+          {/* Antigravity Accounts 1, 2, 3 dynamically */}
+          {accountsList.map((acc, idx) => {
+            const modelStat = modelsList.find(m => m.account_id === acc.id) || {};
+            return (
+              <div
+                key={acc.id || idx}
+                className="p-3.5 rounded-xl bg-zinc-950 space-y-1 relative overflow-hidden border"
+                style={{
+                  borderColor: acc.is_active ? `${acc.badge_color}70` : `${acc.badge_color}25`
+                }}
+              >
+                {acc.is_active && (
+                  <span
+                    className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1"
+                    style={{ backgroundColor: `${acc.badge_color}30`, color: acc.badge_color }}
+                  >
+                    <Flame className="w-2.5 h-2.5" />
+                    <span>AKTIF</span>
+                  </span>
+                )}
+                <div className="flex items-center justify-between" style={{ color: acc.badge_color }}>
+                  <span className="text-[11px] font-mono font-semibold">{acc.short_name}</span>
+                  <Code2 className="w-3.5 h-3.5 opacity-80" />
+                </div>
+                <p className="text-lg sm:text-xl font-bold font-mono" style={{ color: acc.badge_color }}>
+                  {formatTokens(modelStat.total_tokens || 0)}
+                </p>
+                <p className="text-[9px] text-zinc-400 font-mono truncate" title={acc.name ? `${acc.name} (${acc.email})` : acc.email}>
+                  {acc.name ? acc.name : (acc.email ? acc.email.split('@')[0] : acc.short_name)}
+                </p>
+              </div>
+            );
+          })}
 
           {/* DeepSeek-V3 */}
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-sky-900/40 space-y-1">
@@ -366,38 +351,49 @@ export function SessionsView() {
         </div>
       </div>
 
-      {/* 3. Workload Policy Status Banner */}
+      {/* 3. Live agy-pool Status Banner */}
       <div className="p-4 rounded-xl bg-[#121215] border border-zinc-800 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h4 className="text-xs font-bold text-zinc-300 font-mono uppercase tracking-wider flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Dedicated Antigravity Accounts & LLM Tiers</span>
+            <span>Dedicated Antigravity Accounts (agy-pool sync)</span>
           </h4>
-          <span className="text-[10px] text-zinc-500 font-mono">
-            Aktif Sekarang: <strong className="text-indigo-300">{activeAccount.email || 'fahmijapan4@gmail.com'}</strong>
+          <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1.5">
+            <span>Akun Aktif:</span>
+            <strong className="text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+              {activeAccount.short_name}: {activeAccount.name} ({activeAccount.email})
+            </strong>
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          {modelsList.map((m) => (
-            <div key={m.id} className="p-3 rounded-lg bg-zinc-950 border border-zinc-800/80 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {accountsList.map((acc) => (
+            <div
+              key={acc.id}
+              className={`p-3 rounded-lg bg-zinc-950 border space-y-2 transition-all ${
+                acc.is_active ? 'ring-1 ring-indigo-500/40' : ''
+              }`}
+              style={{ borderColor: acc.is_active ? `${acc.badge_color}60` : '#27272a' }}
+            >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5 truncate">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: m.badge_color }} />
-                  <span className="truncate">{m.name}</span>
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.badge_color }} />
+                  <span className="truncate">{acc.short_name}: {acc.name}</span>
                 </span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0" style={{ backgroundColor: `${m.badge_color}20`, color: m.badge_color }}>
-                  {m.is_free ? 'FREE / DEV' : 'PAID API'}
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0"
+                  style={{ backgroundColor: `${acc.badge_color}20`, color: acc.badge_color }}
+                >
+                  {acc.is_active ? '🔥 ACTIVE POOL' : '🟢 READY'}
                 </span>
               </div>
-              {m.email && (
-                <p className="text-[10px] font-mono text-zinc-400 truncate">
-                  ✉️ {m.email}
-                </p>
-              )}
+              <p className="text-[11px] font-mono text-zinc-300 truncate flex items-center gap-1">
+                <span>✉️</span>
+                <span className="font-semibold">{acc.email || 'Belum Dikonfigurasi'}</span>
+              </p>
               <div className="pt-1 border-t border-zinc-900 flex justify-between text-[10px] font-mono text-zinc-500">
-                <span>{m.sessions_count || 0} Sesi</span>
-                <span><strong className="text-zinc-300">{formatTokens(m.total_tokens)}</strong> tok</span>
+                <span>Status: <strong className="text-zinc-400 uppercase">{acc.status}</strong></span>
+                <span>Tasks Selesai: <strong className="text-zinc-300">{acc.total_tasks || 0}</strong></span>
               </div>
             </div>
           ))}
@@ -416,7 +412,7 @@ export function SessionsView() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari kata kunci percakapan / email..."
+                placeholder="Cari sesi / kata kunci..."
                 className="w-full pl-9 pr-20 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
               />
               <button
@@ -427,29 +423,35 @@ export function SessionsView() {
               </button>
             </form>
 
-            {/* Source & Platform Filter Tabs */}
+            {/* Platform & Account Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-[11px]">
               <button
-                onClick={() => setModelFilter('all')}
+                onClick={() => { setSourceFilter('all'); setAccountFilter('all'); }}
                 className={`px-2.5 py-1 rounded-lg transition-colors shrink-0 font-medium ${
-                  modelFilter === 'all' ? 'bg-zinc-800 text-zinc-100 font-bold border border-zinc-700' : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
+                  sourceFilter === 'all' && accountFilter === 'all'
+                    ? 'bg-zinc-800 text-zinc-100 font-bold border border-zinc-700'
+                    : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
                 }`}
               >
                 Semua Sesi
               </button>
               <button
-                onClick={() => setModelFilter('antigravity')}
+                onClick={() => { setSourceFilter('antigravity-cli'); setAccountFilter('all'); }}
                 className={`px-2.5 py-1 rounded-lg transition-colors shrink-0 font-medium flex items-center gap-1.5 ${
-                  modelFilter === 'antigravity' ? 'bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/40' : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
+                  sourceFilter === 'antigravity-cli' && accountFilter === 'all'
+                    ? 'bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/40'
+                    : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
                 }`}
               >
                 <Code2 className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Antigravity CLI</span>
               </button>
               <button
-                onClick={() => setModelFilter('telegram')}
+                onClick={() => { setSourceFilter('telegram'); setAccountFilter('all'); }}
                 className={`px-2.5 py-1 rounded-lg transition-colors shrink-0 font-medium flex items-center gap-1.5 ${
-                  modelFilter === 'telegram' ? 'bg-sky-600/30 text-sky-300 font-bold border border-sky-500/40' : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
+                  sourceFilter === 'telegram'
+                    ? 'bg-sky-600/30 text-sky-300 font-bold border border-sky-500/40'
+                    : 'text-zinc-400 hover:text-zinc-200 bg-zinc-950'
                 }`}
               >
                 <MessageCircle className="w-3.5 h-3.5 text-sky-400" />
@@ -488,6 +490,17 @@ export function SessionsView() {
                           <MessageSquareCode className="w-3 h-3 text-indigo-400" />
                           <span>{sess.source === 'antigravity-cli' ? 'Antigravity CLI' : (sess.source || 'Session')}</span>
                         </span>
+                        {sess.account_tag && (
+                          <span
+                            className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold"
+                            style={{
+                              backgroundColor: `${sess.account_badge_color || '#6366f1'}20`,
+                              color: sess.account_badge_color || '#6366f1'
+                            }}
+                          >
+                            {sess.account_tag}
+                          </span>
+                        )}
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900/60 text-zinc-500 font-mono">
                           {sess.session_id ? sess.session_id.slice(0, 8) : ''}
                         </span>
@@ -502,7 +515,6 @@ export function SessionsView() {
                     <div className="pt-2 border-t border-zinc-800/70 flex items-center justify-between text-[10px] font-mono text-zinc-500">
                       <span>{sess.message_count} Turns</span>
                       <span>{formatTokens(sess.total_tokens)} Tokens</span>
-                      <span className="text-indigo-400 font-semibold">{sess.source}</span>
                     </div>
                   </div>
                 );
@@ -511,7 +523,7 @@ export function SessionsView() {
           </div>
         </div>
 
-        {/* Right Column: Transcript & Tool Calls Reader (7 Cols) */}
+        {/* Right Column: Transcript & Per-Message LLM Reader (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
           {selectedSessionId && sessionDetail ? (
             <div className="rounded-xl bg-[#121215] border border-zinc-800 shadow-xl overflow-hidden flex flex-col">
@@ -560,7 +572,7 @@ export function SessionsView() {
                 </div>
               </div>
 
-              {/* Transcript Stream */}
+              {/* Transcript Stream with Per-Message LLM Badges */}
               <div className="p-5 space-y-4 max-h-[700px] overflow-y-auto custom-scrollbar text-xs leading-relaxed">
                 {loadingDetail ? (
                   <div className="p-12 text-center text-zinc-500 font-mono animate-pulse">Memuat transkrip percakapan...</div>
@@ -572,6 +584,8 @@ export function SessionsView() {
                       const isUser = turn.role === 'user';
                       const hasThinking = Boolean(turn.thinking);
                       const hasTools = Array.isArray(turn.tool_calls) && turn.tool_calls.length > 0;
+                      const badgeColor = turn.handler?.badge_color || turn.model?.badge_color || '#6366f1';
+                      const modelName = turn.model_name || turn.model?.name || 'Gemini 3.7 Flash';
 
                       return (
                         <div
@@ -582,9 +596,9 @@ export function SessionsView() {
                             <div
                               className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-1 border"
                               style={{
-                                backgroundColor: `${turn.handler?.badge_color || turn.model?.badge_color || '#6366f1'}20`,
-                                borderColor: `${turn.handler?.badge_color || turn.model?.badge_color || '#6366f1'}50`,
-                                color: turn.handler?.badge_color || turn.model?.badge_color || '#6366f1'
+                                backgroundColor: `${badgeColor}20`,
+                                borderColor: `${badgeColor}50`,
+                                color: badgeColor
                               }}
                             >
                               <Sparkles className="w-3.5 h-3.5" />
@@ -600,32 +614,38 @@ export function SessionsView() {
                                   : 'bg-zinc-950 border-zinc-800 text-zinc-200 rounded-tl-none'
                               }`}
                             >
-                              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-1.5 gap-4 flex-wrap">
-                                <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Per-Message Metadata Bar */}
+                              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 gap-4 flex-wrap pb-1.5 border-b border-zinc-900">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   {isUser ? (
-                                    <span className="font-semibold text-zinc-400">User Request</span>
+                                    <span className="font-semibold text-indigo-300 flex items-center gap-1">
+                                      <User className="w-3 h-3" />
+                                      <span>User Request</span>
+                                    </span>
                                   ) : (
                                     <>
+                                      {/* Per-message exact LLM Model badge */}
                                       <span
-                                        className="px-2 py-0.5 rounded font-semibold text-[9px] flex items-center gap-1.5 border"
+                                        className="px-2 py-0.5 rounded font-semibold text-[9.5px] flex items-center gap-1.5 border font-mono"
                                         style={{
-                                          backgroundColor: `${turn.handler?.badge_color || turn.model?.badge_color || '#6366f1'}20`,
-                                          color: turn.handler?.badge_color || turn.model?.badge_color || '#6366f1',
-                                          borderColor: `${turn.handler?.badge_color || turn.model?.badge_color || '#6366f1'}40`
+                                          backgroundColor: `${badgeColor}20`,
+                                          color: badgeColor,
+                                          borderColor: `${badgeColor}40`
                                         }}
                                       >
-                                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: turn.handler?.badge_color || turn.model?.badge_color || '#6366f1' }} />
-                                        <span>{turn.handler?.short_name || turn.model?.name || 'Antigravity'}</span>
+                                        <Sparkles className="w-2.5 h-2.5" />
+                                        <span>{modelName}</span>
                                       </span>
-                                      {(turn.handler?.email || turn.model?.account_email) && (
+
+                                      {(turn.handler?.email || turn.handler?.name) && (
                                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 font-mono border border-zinc-800">
-                                          {turn.handler?.email || turn.model?.account_email}
+                                          {turn.handler?.short_name || 'AGY'}: {turn.handler?.name ? `${turn.handler.name} (${turn.handler.email})` : turn.handler?.email}
                                         </span>
                                       )}
                                     </>
                                   )}
                                 </div>
-                                <span>{turn.timestamp}</span>
+                                <span className="text-zinc-500">{turn.timestamp}</span>
                               </div>
 
                               {/* Thinking Process Accordion */}
