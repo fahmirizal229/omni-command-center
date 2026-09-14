@@ -126,24 +126,40 @@ export const api = {
     }),
 
   // --- Hermes Sessions & Multi-LLM History ---
-  /** Fetch all Hermes conversation sessions with model attribution */
+  /** Fetch all Hermes & Antigravity conversation sessions with model & account attribution */
   getSessions: (params = {}) => {
     const q = new URLSearchParams();
     if (params.search) q.set("search", params.search);
     if (params.model) q.set("model", params.model);
+    if (params.account) q.set("account", params.account);
     if (params.source) q.set("source", params.source);
     if (params.limit) q.set("limit", params.limit);
     const queryStr = q.toString() ? `?${q.toString()}` : "";
     return request(`/sessions${queryStr}`);
   },
-  /** Fetch detailed message turns for a specific session */
-  getSessionDetail: (sessionId) => request(`/sessions/${sessionId}`),
+  /** Fetch detailed message turns for a specific session with pagination & sorting */
+  getSessionDetail: (sessionId, params = {}) => {
+    const q = new URLSearchParams();
+    if (params.limit !== undefined) q.set("limit", params.limit);
+    if (params.offset !== undefined) q.set("offset", params.offset);
+    if (params.order) q.set("order", params.order);
+    const queryStr = q.toString() ? `?${q.toString()}` : "";
+    return request(`/sessions/${sessionId}${queryStr}`);
+  },
+  /** Assign or switch Antigravity session to Akun 1, 2, or 3 */
+  assignSessionAccount: (sessionId, accountId) =>
+    request(`/sessions/${sessionId}/account`, {
+      method: "PATCH",
+      body: JSON.stringify({ account_id: accountId }),
+    }),
   /** Fetch multi-LLM comparative analytics and quota metrics */
   getModelAnalytics: () => request("/sessions/analytics"),
   /** Purge chat sessions older than N days (default 7) */
   pruneSessions: (days = 7) => request(`/sessions/prune?days=${days}`, { method: "POST" }),
   /** Hard reset all conversation sessions and LLM logs */
   clearSessions: () => request("/sessions/clear", { method: "POST" }),
+  /** Delete a single conversation session by ID */
+  deleteSession: (sessionId) => request(`/sessions/${sessionId}`, { method: "DELETE" }),
 
   // --- Career & Job Hunter Tracker ---
   /** Get career applications pipeline */

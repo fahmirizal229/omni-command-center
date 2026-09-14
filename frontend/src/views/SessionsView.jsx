@@ -217,11 +217,13 @@ export function SessionsView() {
   const accountsList = analytics?.accounts || [];
   const modelsList = analytics?.models || [];
   const activeAccount = summary?.active_antigravity_account || {};
+  const deepseekStat = modelsList.find(m => m.id === 'deepseek') || {};
+  const localStat = modelsList.find(m => m.id === 'local') || {};
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
       {/* 1. Header Hero Card */}
-      <div className="p-6 rounded-xl bg-[#121215] border border-zinc-800 space-y-4 shadow-xl">
+      <div className="p-6 rounded-xl bg-[#121215] border border-zinc-800 space-y-5 shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
@@ -275,20 +277,38 @@ export function SessionsView() {
           </div>
         </div>
 
-        {/* 2. Top Metric Cards - Live Sync from agy-pool */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
-          {/* Total Tokens */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
+        {/* 2. Top Metric Cards - Live Sync from agy-pool (Token Usage & Messages Handled) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 pt-1">
+          {/* Total Overall Activity */}
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/90 shadow-md hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between text-zinc-400">
-              <span className="text-[11px] font-mono">Total Tokens</span>
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-[11px] font-mono font-semibold text-zinc-300">Total Aktivitas</span>
+              <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                <Zap className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-zinc-100 font-mono">
-              {formatTokens(summary.total_tokens)}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono">
-              {summary.total_turns} Turns Total
-            </p>
+
+            <div className="space-y-2">
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Token Digunakan</span>
+                <p className="text-xl font-black text-amber-400 font-mono tracking-tight">
+                  {formatTokens(summary.total_tokens)} <span className="text-xs font-semibold text-zinc-500">Tok</span>
+                </p>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Message Dihandle</span>
+                <p className="text-sm font-bold text-zinc-200 font-mono flex items-center gap-1.5">
+                  <MessageCircle className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span>{(summary.total_turns || 0).toLocaleString()} <span className="text-[10px] text-zinc-500 font-normal">pesan</span></span>
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <span>{summary.total_sessions || 0} Sesi Aktif</span>
+              <span className="text-emerald-400 font-semibold">+${summary.estimated_savings_usd}</span>
+            </div>
           </div>
 
           {/* Antigravity Accounts 1, 2, 3 dynamically */}
@@ -297,56 +317,126 @@ export function SessionsView() {
             return (
               <div
                 key={acc.id || idx}
-                className="p-3.5 rounded-xl bg-zinc-950 space-y-1 relative overflow-hidden border"
+                className="p-4 rounded-2xl bg-zinc-950 relative overflow-hidden border shadow-md hover:border-zinc-700 transition-all flex flex-col justify-between space-y-3"
                 style={{
                   borderColor: acc.is_active ? `${acc.badge_color}70` : `${acc.badge_color}25`
                 }}
               >
                 {acc.is_active && (
                   <span
-                    className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1"
+                    className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold flex items-center gap-1 shadow-sm"
                     style={{ backgroundColor: `${acc.badge_color}30`, color: acc.badge_color }}
                   >
-                    <Flame className="w-2.5 h-2.5" />
+                    <Flame className="w-2.5 h-2.5 animate-pulse" />
                     <span>AKTIF</span>
                   </span>
                 )}
+                
                 <div className="flex items-center justify-between" style={{ color: acc.badge_color }}>
-                  <span className="text-[11px] font-mono font-semibold">{acc.short_name}</span>
-                  <Code2 className="w-3.5 h-3.5 opacity-80" />
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-mono font-bold block">{acc.short_name}</span>
+                    <p className="text-[9px] text-zinc-400 font-mono truncate max-w-[110px]" title={acc.name ? `${acc.name} (${acc.email})` : acc.email}>
+                      {acc.name ? acc.name : (acc.email ? acc.email.split('@')[0] : acc.short_name)}
+                    </p>
+                  </div>
+                  <div className="p-1.5 rounded-lg border" style={{ backgroundColor: `${acc.badge_color}10`, borderColor: `${acc.badge_color}30` }}>
+                    <Code2 className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-                <p className="text-lg sm:text-xl font-bold font-mono" style={{ color: acc.badge_color }}>
-                  {formatTokens(modelStat.total_tokens || 0)}
-                </p>
-                <p className="text-[9px] text-zinc-400 font-mono truncate" title={acc.name ? `${acc.name} (${acc.email})` : acc.email}>
-                  {acc.name ? acc.name : (acc.email ? acc.email.split('@')[0] : acc.short_name)}
-                </p>
+
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Token Digunakan</span>
+                    <p className="text-xl font-black font-mono tracking-tight" style={{ color: acc.badge_color }}>
+                      {formatTokens(modelStat.total_tokens || 0)} <span className="text-xs font-semibold text-zinc-500">Tok</span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Message Dihandle</span>
+                    <p className="text-sm font-bold text-zinc-200 font-mono flex items-center gap-1.5">
+                      <MessageSquareCode className="w-3.5 h-3.5 shrink-0" style={{ color: acc.badge_color }} />
+                      <span>{(modelStat.turns_count || 0).toLocaleString()} <span className="text-[10px] text-zinc-500 font-normal">pesan</span></span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+                  <span className="truncate">{modelStat.sessions_count || 0} Sesi</span>
+                  <span className="text-zinc-400 truncate">In: {formatTokens(modelStat.input_tokens || 0)} / Out: {formatTokens(modelStat.output_tokens || 0)}</span>
+                </div>
               </div>
             );
           })}
 
           {/* DeepSeek-V3 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-sky-900/40 space-y-1">
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-sky-900/40 shadow-md hover:border-sky-700/60 transition-all flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between text-sky-400">
-              <span className="text-[11px] font-mono font-semibold">DeepSeek-V3</span>
-              <MessageCircle className="w-3.5 h-3.5" />
+              <div className="space-y-0.5">
+                <span className="text-[11px] font-mono font-bold block">DeepSeek-V3</span>
+                <p className="text-[9px] text-zinc-400 font-mono">Moral Companion</p>
+              </div>
+              <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/30 text-sky-400">
+                <MessageCircle className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-sky-300 font-mono">
-              {formatTokens(modelsList.find(m => m.id === 'deepseek')?.total_tokens || 0)}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono">Moral Companion</p>
+
+            <div className="space-y-2">
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Token Digunakan</span>
+                <p className="text-xl font-black text-sky-300 font-mono tracking-tight">
+                  {formatTokens(deepseekStat.total_tokens || 0)} <span className="text-xs font-semibold text-zinc-500">Tok</span>
+                </p>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Message Dihandle</span>
+                <p className="text-sm font-bold text-zinc-200 font-mono flex items-center gap-1.5">
+                  <MessageCircle className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span>{(deepseekStat.turns_count || 0).toLocaleString()} <span className="text-[10px] text-zinc-500 font-normal">pesan</span></span>
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <span>{deepseekStat.sessions_count || 0} Sesi Curhat</span>
+              <span className="text-sky-400 font-semibold">Arusuka</span>
+            </div>
           </div>
 
           {/* Savings / Local Engine */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-emerald-900/40 space-y-1">
+          <div className="p-4 rounded-2xl bg-zinc-950 border border-emerald-900/40 shadow-md hover:border-emerald-700/60 transition-all flex flex-col justify-between space-y-3">
             <div className="flex items-center justify-between text-emerald-400">
-              <span className="text-[11px] font-mono font-semibold">0-Token</span>
-              <Coins className="w-3.5 h-3.5" />
+              <div className="space-y-0.5">
+                <span className="text-[11px] font-mono font-bold block">Hermes Local</span>
+                <p className="text-[9px] text-zinc-400 font-mono">0-Token Engine</p>
+              </div>
+              <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <Coins className="w-3.5 h-3.5" />
+              </div>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-emerald-400 font-mono">
-              ${summary.estimated_savings_usd}
-            </p>
-            <p className="text-[9px] text-zinc-500 font-mono">Hemat Dev Tier</p>
+
+            <div className="space-y-2">
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Token Digunakan</span>
+                <p className="text-xl font-black text-emerald-400 font-mono tracking-tight">
+                  0 <span className="text-xs font-semibold text-emerald-600">Free</span>
+                </p>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">Tasks Dihandle</span>
+                <p className="text-sm font-bold text-zinc-200 font-mono flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>{(localStat.turns_count || 0).toLocaleString()} <span className="text-[10px] text-zinc-500 font-normal">tasks</span></span>
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+              <span>Autonomous Worker</span>
+              <span className="text-emerald-400 font-semibold">0 Token Cost</span>
+            </div>
           </div>
         </div>
       </div>
@@ -367,36 +457,40 @@ export function SessionsView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {accountsList.map((acc) => (
-            <div
-              key={acc.id}
-              className={`p-3 rounded-lg bg-zinc-950 border space-y-2 transition-all ${
-                acc.is_active ? 'ring-1 ring-indigo-500/40' : ''
-              }`}
-              style={{ borderColor: acc.is_active ? `${acc.badge_color}60` : '#27272a' }}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5 truncate">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.badge_color }} />
-                  <span className="truncate">{acc.short_name}: {acc.name}</span>
-                </span>
-                <span
-                  className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0"
-                  style={{ backgroundColor: `${acc.badge_color}20`, color: acc.badge_color }}
-                >
-                  {acc.is_active ? '🔥 ACTIVE POOL' : '🟢 READY'}
-                </span>
+          {accountsList.map((acc) => {
+            const modelStat = modelsList.find(m => m.account_id === acc.id) || {};
+            const completedCount = modelStat.sessions_count ?? acc.total_tasks ?? 0;
+            return (
+              <div
+                key={acc.id}
+                className={`p-3 rounded-lg bg-zinc-950 border space-y-2 transition-all ${
+                  acc.is_active ? 'ring-1 ring-indigo-500/40' : ''
+                }`}
+                style={{ borderColor: acc.is_active ? `${acc.badge_color}60` : '#27272a' }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5 truncate">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: acc.badge_color }} />
+                    <span className="truncate">{acc.short_name}: {acc.name}</span>
+                  </span>
+                  <span
+                    className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0"
+                    style={{ backgroundColor: `${acc.badge_color}20`, color: acc.badge_color }}
+                  >
+                    {acc.is_active ? '🔥 ACTIVE POOL' : '🟢 READY'}
+                  </span>
+                </div>
+                <p className="text-[11px] font-mono text-zinc-300 truncate flex items-center gap-1">
+                  <span>✉️</span>
+                  <span className="font-semibold">{acc.email || 'Belum Dikonfigurasi'}</span>
+                </p>
+                <div className="pt-1 border-t border-zinc-900 flex justify-between text-[10px] font-mono text-zinc-500">
+                  <span>Status: <strong className="text-zinc-400 uppercase">{acc.status}</strong></span>
+                  <span>Tasks Selesai: <strong className="text-zinc-300">{completedCount} Sesi</strong></span>
+                </div>
               </div>
-              <p className="text-[11px] font-mono text-zinc-300 truncate flex items-center gap-1">
-                <span>✉️</span>
-                <span className="font-semibold">{acc.email || 'Belum Dikonfigurasi'}</span>
-              </p>
-              <div className="pt-1 border-t border-zinc-900 flex justify-between text-[10px] font-mono text-zinc-500">
-                <span>Status: <strong className="text-zinc-400 uppercase">{acc.status}</strong></span>
-                <span>Tasks Selesai: <strong className="text-zinc-300">{acc.total_tasks || 0}</strong></span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -485,27 +579,23 @@ export function SessionsView() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 flex items-center gap-1.5">
-                          <MessageSquareCode className="w-3 h-3 text-indigo-400" />
-                          <span>{sess.source === 'antigravity-cli' ? 'Antigravity CLI' : (sess.source || 'Session')}</span>
-                        </span>
-                        {sess.account_tag && (
-                          <span
-                            className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold"
-                            style={{
-                              backgroundColor: `${sess.account_badge_color || '#6366f1'}20`,
-                              color: sess.account_badge_color || '#6366f1'
-                            }}
-                          >
-                            {sess.account_tag}
-                          </span>
-                        )}
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900/60 text-zinc-500 font-mono">
-                          {sess.session_id ? sess.session_id.slice(0, 8) : ''}
-                        </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded font-mono font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 flex items-center gap-1.5">
+                        <MessageSquareCode className="w-3 h-3 text-indigo-400" />
+                        <span>Sesi #{sess.session_id ? sess.session_id.slice(0, 8) : ''}</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-zinc-500 font-mono">{sess.last_active}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSingleSession(sess.session_id);
+                          }}
+                          className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                          title="Hapus sesi ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <span className="text-[10px] text-zinc-500 font-mono">{sess.last_active}</span>
                     </div>
 
                     <h5 className="text-xs font-bold text-zinc-100 line-clamp-2 leading-relaxed">
@@ -540,14 +630,13 @@ export function SessionsView() {
                       {copiedId === 'sid' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                    <span className="text-[10px] px-2 py-0.5 rounded font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 flex items-center gap-1.5">
+                  <div className="flex items-center gap-2 pt-0.5 flex-wrap text-[10px] text-zinc-400 font-mono">
+                    <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 flex items-center gap-1.5 text-zinc-300">
                       <Layers className="w-3 h-3 text-indigo-400" />
-                      <span>{sessionDetail.source === 'antigravity-cli' ? 'Antigravity CLI Session' : (sessionDetail.source || 'Session')}</span>
+                      <span>Percakapan AI</span>
                     </span>
-                    <span className="text-[10px] text-zinc-500 font-mono">
-                      {sessionDetail.total_turns} Turns Total
-                    </span>
+                    <span>•</span>
+                    <span>{sessionDetail.total_turns} Pesan Percakapan</span>
                   </div>
                 </div>
 
@@ -614,7 +703,7 @@ export function SessionsView() {
                                   : 'bg-zinc-950 border-zinc-800 text-zinc-200 rounded-tl-none'
                               }`}
                             >
-                              {/* Per-Message Metadata Bar */}
+                              {/* Per-Message Header Bar */}
                               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 gap-4 flex-wrap pb-1.5 border-b border-zinc-900">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {isUser ? (
@@ -623,72 +712,100 @@ export function SessionsView() {
                                       <span>User Request</span>
                                     </span>
                                   ) : (
-                                    <>
-                                      {/* Per-message exact LLM Model badge */}
-                                      <span
-                                        className="px-2 py-0.5 rounded font-semibold text-[9.5px] flex items-center gap-1.5 border font-mono"
-                                        style={{
-                                          backgroundColor: `${badgeColor}20`,
-                                          color: badgeColor,
-                                          borderColor: `${badgeColor}40`
-                                        }}
-                                      >
-                                        <Sparkles className="w-2.5 h-2.5" />
-                                        <span>{modelName}</span>
-                                      </span>
-
-                                      {(turn.handler?.email || turn.handler?.name) && (
-                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 font-mono border border-zinc-800">
-                                          {turn.handler?.short_name || 'AGY'}: {turn.handler?.name ? `${turn.handler.name} (${turn.handler.email})` : turn.handler?.email}
-                                        </span>
-                                      )}
-                                    </>
+                                    <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                                      <Bot className="w-3.5 h-3.5" />
+                                      <span>Arusuka AI Response</span>
+                                    </span>
                                   )}
                                 </div>
                                 <span className="text-zinc-500">{turn.timestamp}</span>
                               </div>
 
-                              {/* Thinking Process Accordion */}
-                              {hasThinking && (
-                                <div className="mb-2.5 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden">
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleThinking(turn.turn_id)}
-                                    className="w-full px-2.5 py-1.5 flex items-center justify-between text-[10px] font-mono text-zinc-400 hover:text-zinc-200 bg-zinc-900/80"
-                                  >
-                                    <span className="flex items-center gap-1.5">
-                                      <Brain className="w-3 h-3 text-purple-400" />
-                                      <span>Thought Process ({turn.thinking.length} chars)</span>
-                                    </span>
-                                    <ChevronDown className={`w-3 h-3 transition-transform ${expandedThinking[turn.turn_id] ? 'rotate-180' : ''}`} />
-                                  </button>
-                                  {expandedThinking[turn.turn_id] && (
-                                    <div className="p-2.5 text-[10px] font-mono text-zinc-400 border-t border-zinc-800 whitespace-pre-wrap bg-zinc-950/70 max-h-48 overflow-y-auto custom-scrollbar">
-                                      {turn.thinking}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Main Content Text */}
+                              {/* Main Clean Content Text */}
                               <div className="whitespace-pre-wrap font-sans text-xs text-zinc-200 leading-relaxed">
                                 {turn.content}
                               </div>
 
-                              {/* Tool Calls Inspection */}
-                              {hasTools && (
-                                <div className="mt-2.5 pt-2 border-t border-zinc-800/80 space-y-1.5">
-                                  <p className="text-[10px] font-mono text-zinc-400 flex items-center gap-1">
-                                    <Wrench className="w-3 h-3 text-amber-400" />
-                                    <span>Executed Tool Calls ({turn.tool_calls.length})</span>
-                                  </p>
-                                  <div className="space-y-1">
-                                    {turn.tool_calls.map((tc, tcIdx) => (
-                                      <div key={tcIdx} className="p-2 rounded bg-zinc-900/90 border border-zinc-800 text-[10px] font-mono text-zinc-300">
-                                        <span className="text-amber-400 font-bold">{tc.tool || tc.name || 'tool'}</span>
-                                        {tc.args && <p className="text-zinc-400 text-[9px] truncate mt-0.5">{JSON.stringify(tc.args)}</p>}
+                              {/* Per-Request AI Contributors & Token Usage Credit Box */}
+                              {!isUser && turn.credit && (
+                                <div className="mt-3 pt-2.5 border-t border-zinc-800/80 rounded-xl bg-zinc-900/80 p-3 space-y-2.5 border border-zinc-800/80 shadow-md">
+                                  <div className="flex items-center justify-between gap-2 flex-wrap text-[10px] font-mono">
+                                    <div className="flex items-center gap-1.5 text-zinc-300 font-bold">
+                                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                                      <span>AI & Akun yang Membantu Request Ini:</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-zinc-400 text-[9.5px] bg-zinc-950 px-2.5 py-1 rounded-lg border border-zinc-800">
+                                      <span>📥 In: ~{turn.credit.input_tokens}</span>
+                                      <span className="text-zinc-600">•</span>
+                                      <span>📤 Out: ~{turn.credit.output_tokens}</span>
+                                      <span className="text-zinc-600">•</span>
+                                      <span className="text-amber-400 font-bold">⚡ Total: ~{turn.credit.total_tokens} tokens</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-wrap gap-2 items-center pt-0.5">
+                                    {/* 1. Explicit Account Badge (Akun & Email) */}
+                                    {(turn.credit.account_email || turn.credit.account_name || turn.credit.account_short) && (
+                                      <div
+                                        className="px-2.5 py-1 rounded-lg font-mono text-[10px] flex items-center gap-1.5 border shadow-sm font-semibold"
+                                        style={{
+                                          backgroundColor: `${turn.credit.badge_color || '#6366f1'}20`,
+                                          color: turn.credit.badge_color || '#6366f1',
+                                          borderColor: `${turn.credit.badge_color || '#6366f1'}50`
+                                        }}
+                                      >
+                                        <User className="w-3 h-3 shrink-0" />
+                                        <span>{turn.credit.account_short || 'Akun'}</span>
+                                        <span className="text-zinc-300 text-[9.5px] font-normal">
+                                          {turn.credit.account_email
+                                            ? `(${turn.credit.account_email})`
+                                            : `(${turn.credit.account_name})`}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    {/* 2. Model Badge */}
+                                    <div
+                                      className="px-2.5 py-1 rounded-lg font-mono text-[10px] flex items-center gap-1.5 border shadow-sm font-semibold bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
+                                    >
+                                      <Sparkles className="w-3 h-3 text-indigo-400 shrink-0" />
+                                      <span>{turn.credit.model_name || 'Gemini 3.7 Flash'}</span>
+                                      <span className="text-zinc-400 text-[9px] font-normal">(Lead AI)</span>
+                                    </div>
+
+                                    {/* 3. Subagents & Tool Contributors (if any) */}
+                                    {turn.credit.contributors?.filter(c => c.type !== 'model').map((c, cIdx) => (
+                                      <div
+                                        key={cIdx}
+                                        className="px-2.5 py-1 rounded-lg font-mono text-[9.5px] flex items-center gap-1.5 border shadow-sm"
+                                        style={{
+                                          backgroundColor: `${c.badge_color || '#6366f1'}15`,
+                                          color: c.badge_color || '#6366f1',
+                                          borderColor: `${c.badge_color || '#6366f1'}35`
+                                        }}
+                                      >
+                                        {c.type === 'subagent' ? (
+                                          <Brain className="w-3 h-3 text-emerald-400 shrink-0" />
+                                        ) : (
+                                          <Wrench className="w-3 h-3 text-amber-400 shrink-0" />
+                                        )}
+                                        <span className="font-bold">{c.name}</span>
+                                        <span className="text-zinc-400 text-[9px]">({c.role})</span>
                                       </div>
                                     ))}
+
+                                    {/* 4. Tier & Cost Badge */}
+                                    {turn.credit.is_free ? (
+                                      <span className="text-[9.5px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/30 flex items-center gap-1">
+                                        <Shield className="w-3 h-3 text-emerald-400 shrink-0" />
+                                        <span>Biaya: $0.00 ({turn.credit.plan_tag || 'Google One AI Premium'})</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9.5px] px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-400 font-mono border border-sky-500/30 flex items-center gap-1">
+                                        <Coins className="w-3 h-3 text-sky-400 shrink-0" />
+                                        <span>Biaya: ~${turn.credit.cost_usd || '0.000'}</span>
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               )}

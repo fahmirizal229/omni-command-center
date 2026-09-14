@@ -92,10 +92,14 @@ def clean_retention(days: int = 7, verbose: bool = True) -> dict:
         try:
             rconn = sqlite3.connect(str(ROUTER_DB), timeout=10.0)
             rcur = rconn.cursor()
-            rcur.execute("DELETE FROM llm_router_logs WHERE created_at < ?", (cutoff_ts,))
+            rcur.execute("DELETE FROM llm_router_logs WHERE timestamp < ?", (cutoff_ts,))
             stats["deleted_router_logs"] = rcur.rowcount
             rconn.commit()
             rcur.execute("VACUUM")
+            try:
+                rcur.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            except Exception:
+                pass
             rconn.close()
             if verbose:
                 print(f"  router_logs.db cleaned: {stats['deleted_router_logs']} logs pruned.")

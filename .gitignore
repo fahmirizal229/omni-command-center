@@ -34,3 +34,4 @@ build/
 storage_vault/
 uploads/
 backups/
+dist_ui/

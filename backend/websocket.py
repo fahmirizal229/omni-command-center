@@ -99,6 +99,11 @@ async def realtime_telemetry_loop():
                 "system": {
                     "cpu_percent": cpu_pct,
                     "cpu_cores": cpu_cores,
+                    "ram_percent": mem.percent,
+                    "ram_used_gb": round(mem.used / (1024**3), 2),
+                    "ram_total_gb": round(mem.total / (1024**3), 2),
+                    "disk_percent": round((disk.used / disk.total) * 100, 1),
+                    "disk_free_gb": round(disk.free / (1024**3), 1),
                     "memory": {
                         "percent": mem.percent,
                         "used_gb": round(mem.used / (1024**3), 2),

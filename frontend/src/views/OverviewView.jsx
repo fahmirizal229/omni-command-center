@@ -72,9 +72,12 @@ export function OverviewView({ overview, onNavigate }) {
   const sleepHours = zepp?.last_sleep?.sleep_hours || "--";
 
   // System gauges calculations
-  const cpuPercent = Math.min(system?.cpu_percent || 0, 100);
-  const ramPercent = Math.min(system?.ram_percent || 0, 100);
-  const diskPercent = Math.min(system?.disk_percent || 0, 100);
+  const cpuPercent = Math.min(system?.cpu_percent ?? 0, 100);
+  const ramPercent = Math.min(system?.ram_percent ?? system?.memory?.percent ?? 0, 100);
+  const diskPercent = Math.min(system?.disk_percent ?? system?.disk?.percent ?? 0, 100);
+  const ramUsedGb = system?.ram_used_gb ?? system?.memory?.used_gb;
+  const ramTotalGb = system?.ram_total_gb ?? system?.memory?.total_gb;
+  const diskFreeGb = system?.disk_free_gb ?? system?.disk?.free_gb;
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fadeIn">
@@ -364,7 +367,7 @@ export function OverviewView({ overview, onNavigate }) {
                 />
               </div>
               <p className="text-[10px] text-zinc-400 font-mono truncate">
-                {system?.ram_used_gb ? `${system.ram_used_gb} GB / ${system.ram_total_gb} GB` : "RAM Terpakai"}
+                {ramUsedGb ? `${ramUsedGb} GB / ${ramTotalGb} GB` : "RAM Terpakai"}
               </p>
             </div>
 
@@ -383,7 +386,7 @@ export function OverviewView({ overview, onNavigate }) {
                 />
               </div>
               <p className="text-[10px] text-zinc-400 font-mono truncate">
-                {system?.disk_free_gb ? `${system.disk_free_gb} GB Tersedia` : "NVMe SSD"}
+                {diskFreeGb ? `${diskFreeGb} GB Tersedia` : "NVMe SSD"}
               </p>
             </div>
           </div>

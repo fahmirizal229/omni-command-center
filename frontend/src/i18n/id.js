@@ -23,6 +23,8 @@ export default {
   btn_change_password: "Ganti Password",
   btn_logout: "Keluar",
   logout_confirm: "Apakah kamu yakin ingin keluar dari dashboard?",
+  logout_modal_title: "Konfirmasi Keluar",
+  logout_modal_desc: "Apakah kamu yakin ingin keluar dari sesi dashboard? Kamu perlu memasukkan kredensial login kembali untuk mengakses workspace.",
 
   // Common Actions & Modals
   save: "Simpan",

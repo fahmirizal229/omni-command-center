@@ -12,9 +12,9 @@ import { useLanguage } from "../context/LanguageContext";
 
 /**
  * Top floating navigation component.
- * @param {{ onRefresh: () => void, refreshing: boolean, onOpenChangePassword: () => void }} props
+ * @param {{ onRefresh: () => void, refreshing: boolean, onOpenChangePassword: () => void, onOpenLogoutConfirm?: () => void }} props
  */
-export function Navbar({ onRefresh, refreshing, onOpenChangePassword }) {
+export function Navbar({ onRefresh, refreshing, onOpenChangePassword, onOpenLogoutConfirm }) {
   const { username, logout } = useAuth();
   const { wsStatus } = useWebSocket();
   const { language, setLanguage, t, supportedLanguages } = useLanguage();
@@ -158,7 +158,9 @@ export function Navbar({ onRefresh, refreshing, onOpenChangePassword }) {
             <button
               type="button"
               onClick={() => {
-                if (confirm(t("logout_confirm", "Apakah kamu yakin ingin keluar?"))) {
+                if (onOpenLogoutConfirm) {
+                  onOpenLogoutConfirm();
+                } else if (confirm(t("logout_confirm", "Apakah kamu yakin ingin keluar?"))) {
                   logout();
                 }
               }}

@@ -23,6 +23,8 @@ export default {
   btn_change_password: "Change Password",
   btn_logout: "Logout",
   logout_confirm: "Are you sure you want to log out from the dashboard?",
+  logout_modal_title: "Confirm Logout",
+  logout_modal_desc: "Are you sure you want to log out from the dashboard session? You will need to enter your login credentials again to access the workspace.",
 
   // Common Actions & Modals
   save: "Save",
