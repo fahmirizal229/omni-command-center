@@ -25,7 +25,7 @@ export const SUPPORTED_LANGUAGES = [
  */
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
-    return localStorage.getItem("arusuka_lang") || "id";
+    return localStorage.getItem("arusuka_lang") || "en";
   });
 
   const setLanguage = useCallback((langCode) => {

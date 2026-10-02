@@ -59,7 +59,7 @@ def login(payload: LoginRequest, request: Request, response: Response):
         )
 
     token = create_session_token(payload.username)
-    expire_days = config.get("session_expire_days", 30)
+    expire_days = config.get("session_expire_days", 1)
     
     is_secure = (
         request.url.scheme == "https"

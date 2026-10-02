@@ -1,565 +1,710 @@
-/**
- * @file Sidebar.jsx
- * @description Sleek, unified Left Sidebar Navigation for Arusuka Command Center.
- * Perfectly styled to match the dark Obsidian/Zinc dashboard aesthetic.
- */
-
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   LayoutDashboard,
-  CheckSquare,
-  Activity,
-  CloudSun,
-  Brain,
-  Briefcase,
+  Database,
   HardDrive,
-  CalendarClock,
-  UserCheck,
-  RefreshCw,
-  KeyRound,
+  Terminal,
+  Command,
+  Sun,
+  Moon,
   LogOut,
-  ExternalLink,
-  Sparkles,
-  ChevronRight,
-  MessageSquareCode,
+  ChevronsLeft,
+  ChevronsRight,
+  KeyRound,
+  ShieldCheck,
+  ShieldAlert,
+  User,
+  X,
   Menu,
-  X
-} from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useWebSocket } from "../context/WebSocketContext";
-import { useLanguage } from "../context/LanguageContext";
+  Sparkles,
+  HeartPulse,
+  CloudSun,
+  Bot,
+  UserCheck,
+  Globe,
+  Swords,
+  Feather,
+  Flame,
+  Utensils,
+  Palette,
+  Brain,
+  Activity,
+  Briefcase,
+  Kanban,
+} from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { playSwitchSound } from '../utils/soundEffects';
+import { motion, AnimatePresence } from 'motion/react';
 
-export const NAVIGATION_GROUPS = [
-  {
-    titleKey: "group_core",
-    defaultTitle: "Utama & AI",
-    items: [
-      { id: "overview", labelKey: "nav_overview", defaultLabel: "Ringkasan", icon: LayoutDashboard, color: "text-indigo-400" },
-      { id: "sessions", labelKey: "nav_sessions", defaultLabel: "AI Logs & Chat", icon: MessageSquareCode, color: "text-sky-400" },
-      { id: "brain", labelKey: "nav_brain", defaultLabel: "Second Brain", icon: Brain, color: "text-purple-400" },
-    ]
-  },
-  {
-    titleKey: "group_productivity",
-    defaultTitle: "Produktivitas & Karir",
-    items: [
-      { id: "tasks", labelKey: "nav_tasks", defaultLabel: "Tugas & Kanban", icon: CheckSquare, color: "text-amber-400" },
-      { id: "jobs", labelKey: "nav_jobs", defaultLabel: "Karir & Radar", icon: Briefcase, color: "text-emerald-400" },
-      { id: "zepp", labelKey: "nav_zepp", defaultLabel: "Kebugaran & Tidur", icon: Activity, color: "text-rose-400" },
-      { id: "weather", labelKey: "nav_weather", defaultLabel: "Radar Cuaca BMKG", icon: CloudSun, color: "text-cyan-400" },
-    ]
-  },
-  {
-    titleKey: "group_system",
-    defaultTitle: "Sistem & Vault",
-    items: [
-      { id: "storage", labelKey: "nav_storage", defaultLabel: "Storage Vault", icon: HardDrive, color: "text-blue-400" },
-      { id: "schedules", labelKey: "nav_schedules", defaultLabel: "Otomasi & Cron", icon: CalendarClock, color: "text-yellow-400" },
-      { id: "uptime", labelKey: "nav_uptime", defaultLabel: "Uptime Monitor", icon: Activity, color: "text-emerald-400", href: "https://status.arusuka.my.id", external: true },
-      { id: "profile", labelKey: "nav_profile", defaultLabel: "Editor CV & Profil", icon: UserCheck, color: "text-pink-400" },
-    ]
-  }
-];
-
-export function Sidebar({ activeTab, onTabChange, onRefresh, refreshing, onOpenChangePassword, onOpenLogoutConfirm }) {
-  const { username, logout } = useAuth();
-  const { wsStatus } = useWebSocket();
-  const { language, setLanguage, t, supportedLanguages } = useLanguage();
-
-  const [mobileOpen, setMobileOpen] = useState(false);
+export function Sidebar({
+  activeTab,
+  onTabChange,
+  onOpenCommandPalette,
+  onToggleTheme,
+  isDark,
+  onOpenChangePassword,
+  onOpenLogoutConfirm,
+  isExpanded,
+  setIsExpanded,
+  isMobileOpen,
+  setIsMobileOpen,
+}) {
+  const { user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false);
-
+  const [isMac, setIsMac] = useState(false);
   const menuRef = useRef(null);
-  const profileButtonRef = useRef(null);
-  const mobileMenuRef = useRef(null);
-  const mobileAvatarRef = useRef(null);
 
-  // Close user menu on outside click/touch
+  // Detect OS for dynamic shortcut keys
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Sidebar footer popover
-      if (
-        userMenuOpen &&
-        menuRef.current &&
-        !menuRef.current.contains(event.target) &&
-        profileButtonRef.current &&
-        !profileButtonRef.current.contains(event.target)
-      ) {
+    setIsMac(
+      typeof window !== 'undefined' &&
+      /Mac|iPod|iPhone|iPad/.test(navigator.userAgent || navigator.platform || '')
+    );
+  }, []);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setUserMenuOpen(false);
       }
-
-      // Mobile top header popover
-      if (
-        mobileUserMenuOpen &&
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target) &&
-        mobileAvatarRef.current &&
-        !mobileAvatarRef.current.contains(event.target)
-      ) {
-        setMobileUserMenuOpen(false);
-      }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside, { passive: true });
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [userMenuOpen, mobileUserMenuOpen]);
-
-  // Handle logout trigger
-  const handleLogoutClick = () => {
-    setUserMenuOpen(false);
-    setMobileUserMenuOpen(false);
-    setMobileOpen(false);
-    if (onOpenLogoutConfirm) {
-      onOpenLogoutConfirm();
-    } else if (confirm(t("logout_confirm", "Apakah kamu yakin ingin keluar?"))) {
-      logout();
+    if (userMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
+
+  // Grouped Navigation Structure with Dynamic Localization
+  const navGroups = [
+    {
+      id: 'system',
+      title: t('group_system', 'SYSTEM CORE'),
+      items: [
+        { id: 'overview', label: t('nav_overview', 'Overview'), icon: LayoutDashboard },
+        { id: 'storage', label: t('nav_storage', 'Storage'), icon: HardDrive },
+        { id: 'database', label: t('nav_database', 'Database Studio'), icon: Database },
+        { id: 'terminal', label: t('nav_terminal', 'Terminal'), icon: Terminal },
+        { id: 'security', label: 'Security Radar', icon: ShieldAlert },
+      ],
+    },
+    {
+      id: 'knowledge',
+      title: 'KNOWLEDGE & VAULT',
+      items: [
+        { id: 'secondbrain', label: 'Obsidian Second Brain', icon: Brain },
+        { id: 'techradar', label: 'Engineering Tech Radar', icon: Globe },
+      ],
+    },
+    {
+      id: 'apps',
+      title: t('group_apps', 'APPS & PORTFOLIO'),
+      items: [
+        { id: 'jobs', label: 'Job & Career Radar', icon: Briefcase },
+        { id: 'kanban', label: 'Career Kanban Board', icon: Kanban },
+        { id: 'profile', label: t('nav_profile', 'Profile & CV'), icon: UserCheck },
+        { id: 'playground', label: 'Design Playground', icon: Palette },
+      ],
+    },
+    {
+      id: 'personal',
+      title: t('group_personal', 'PERSONAL & LIFE'),
+      items: [
+        { id: 'fitness', label: t('nav_fitness', 'Health & Fitness'), icon: HeartPulse },
+        { id: 'diet', label: 'OMAD Nutrition', icon: Utensils },
+        { id: 'weather', label: t('nav_weather', 'Weather & Radar'), icon: CloudSun },
+      ],
+    },
+    {
+      id: 'ai',
+      title: t('group_ai', 'AI & AUTOMATION'),
+      items: [
+        { id: 'sentinel', label: 'Arusuka Sentinel', icon: Activity },
+        { id: 'warroom', label: 'Agent War Room', icon: Flame },
+        { id: 'kuro', label: t('nav_kuro', 'Kuro Team Swarm'), icon: Swords },
+        { id: 'shiro', label: t('nav_shiro', 'Shiro Team Swarm'), icon: Feather },
+        { id: 'whatsapp', label: t('nav_whatsapp', 'WhatsApp Secretary'), icon: Bot },
+      ],
+    },
+  ];
+
+  const handleNavSelect = (tabId) => {
+    playSwitchSound();
+    onTabChange(tabId);
+    if (setIsMobileOpen) setIsMobileOpen(false);
   };
-
-  // Close mobile drawer on route change
-  const handleNavClick = (id) => {
-    onTabChange(id);
-    setMobileOpen(false);
-    setMobileUserMenuOpen(false);
-  };
-
-  // Find active label for mobile header
-  const getActiveTabLabel = () => {
-    for (const group of NAVIGATION_GROUPS) {
-      const match = group.items.find((item) => item.id === activeTab);
-      if (match) return t(match.labelKey, match.defaultLabel);
-    }
-    return "Dashboard";
-  };
-
-  const SidebarContent = (
-    <div className="flex flex-col h-full select-none bg-[#0c0d12] text-zinc-100">
-      {/* 1. Header / Brand Identity */}
-      <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-        <a
-          href="https://arusuka.my.id"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2.5 group"
-          title="Buka Web Utama (arusuka.my.id)"
-        >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm text-zinc-100 tracking-tight group-hover:text-indigo-400 transition-colors">
-                Arusuka
-              </span>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-zinc-800 text-indigo-400 border border-zinc-700">
-                OMNI
-              </span>
-            </div>
-            <p className="text-[10px] text-zinc-500 font-mono">Command Center</p>
-          </div>
-        </a>
-
-        {/* Mobile Close Button */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen(false)}
-          className="md:hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* 2. Live Telemetry & Status Banner */}
-      <div className="px-4 py-2.5 bg-zinc-950/70 border-b border-zinc-800/90 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            {wsStatus === "connected" && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            )}
-            <span
-              className={`relative inline-flex rounded-full h-2 w-2 ${
-                wsStatus === "connected" ? "bg-emerald-400" : wsStatus === "connecting" ? "bg-amber-400" : "bg-zinc-600"
-              }`}
-            />
-          </span>
-          <span className="text-[11px] font-mono font-semibold tracking-wider uppercase text-zinc-400">
-            {wsStatus === "connected" ? "Telemetry LIVE" : wsStatus === "connecting" ? "Connecting..." : "Offline"}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onRefresh}
-          title="Segarkan Data"
-          className="p-1 rounded-md text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-indigo-400" : ""}`} />
-        </button>
-      </div>
-
-      {/* 3. Grouped Navigation Links (Scrollable) */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-5 custom-scrollbar">
-        {NAVIGATION_GROUPS.map((group, gIdx) => (
-          <div key={gIdx} className="space-y-1">
-            <h4 className="px-2.5 text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-500">
-              {t(group.titleKey, group.defaultTitle)}
-            </h4>
-            <div className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                const label = t(item.labelKey, item.defaultLabel);
-
-                if (item.external && item.href) {
-                  return (
-                    <a
-                      key={item.id}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/80 border border-transparent font-medium transition-all duration-150 group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <Icon className={`w-4 h-4 shrink-0 ${item.color} opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-transform`} />
-                        <span className="truncate">{label}</span>
-                      </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
-                    </a>
-                  );
-                }
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 group ${
-                      isActive
-                        ? "bg-zinc-800 text-zinc-100 border border-zinc-700/80 font-bold shadow-sm"
-                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/80 border border-transparent font-medium"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon
-                        className={`w-4 h-4 shrink-0 transition-transform ${
-                          isActive ? "text-indigo-400 scale-105" : `${item.color} opacity-80 group-hover:opacity-100 group-hover:scale-105`
-                        }`}
-                      />
-                      <span className="truncate">{label}</span>
-                    </div>
-
-                    {isActive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </nav>
-
-      {/* 4. Footer Controls & User Account */}
-      <div className="p-3 border-t border-zinc-800 space-y-2 bg-[#0c0d12] relative">
-        {/* Account Menu Popover */}
-        {userMenuOpen && (
-          <div
-            ref={menuRef}
-            className="absolute bottom-full left-3 right-3 mb-2 rounded-2xl bg-[#121215] border border-zinc-800 p-2.5 shadow-2xl z-50 animate-fadeIn text-xs space-y-1"
-          >
-            <div className="px-2.5 py-1.5 border-b border-zinc-800/80 mb-1">
-              <p className="font-bold text-zinc-100 truncate">{username || "Arusuka"}</p>
-              <p className="text-[10px] text-zinc-500 font-mono">Arusuka Workspace</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setUserMenuOpen(false);
-                handleNavClick("profile");
-              }}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors text-left"
-            >
-              <span className="flex items-center gap-2">
-                <UserCheck className="w-3.5 h-3.5 text-pink-400" />
-                <span>{t("nav_profile", "Editor CV & Profil")}</span>
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setUserMenuOpen(false);
-                setMobileOpen(false);
-                onOpenChangePassword();
-              }}
-              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors text-left"
-            >
-              <span className="flex items-center gap-2">
-                <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                <span>{t("btn_change_password", "Ganti Password")}</span>
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-            </button>
-
-            <a
-              href="https://status.arusuka.my.id"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between px-2.5 py-2 rounded-xl text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/10 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Uptime Monitor</span>
-              </span>
-              <span className="text-[9px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
-            </a>
-
-            <a
-              href="https://arusuka.my.id"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Web Utama</span>
-              </span>
-              <span className="text-[10px] text-zinc-500 font-mono">arusuka.my.id</span>
-            </a>
-
-            <div className="pt-1 border-t border-zinc-800/80">
-              <button
-                type="button"
-                onClick={handleLogoutClick}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-left font-medium"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>{t("btn_logout", "Keluar")}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Language Switcher */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800">
-          <span className="text-[11px] font-mono text-zinc-500">Bahasa:</span>
-          <div className="flex items-center gap-1">
-            {supportedLanguages.map((lang) => (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => setLanguage(lang.code)}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold transition-colors ${
-                  language === lang.code
-                    ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                    : "text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                {lang.shortLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* User Profile Pill Button */}
-        <button
-          ref={profileButtonRef}
-          type="button"
-          onClick={() => setUserMenuOpen((prev) => !prev)}
-          className={`w-full flex items-center justify-between p-2 rounded-xl border transition-all active:scale-[0.98] ${
-            userMenuOpen
-              ? "bg-zinc-900 border-indigo-500/50 shadow-sm"
-              : "bg-zinc-950 hover:bg-zinc-900 border-zinc-800 hover:border-zinc-700"
-          }`}
-          aria-label="Pengaturan Akun"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-xs font-bold text-white shadow-sm shrink-0">
-              {username ? username.charAt(0).toUpperCase() : "A"}
-            </div>
-            <div className="text-left truncate">
-              <p className="text-xs font-semibold text-zinc-200 truncate">{username || "Akun"}</p>
-              <p className="text-[10px] text-zinc-400 font-mono truncate font-medium">Pengaturan & Akun</p>
-            </div>
-          </div>
-          <ChevronRight className={`w-4 h-4 text-zinc-400 transition-transform duration-200 ${userMenuOpen ? "rotate-90 text-indigo-400" : ""}`} />
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <>
-      {/* 1. Mobile Top Header Bar */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-[#0c0d12]/95 backdrop-blur-md border-b border-zinc-800 px-4 flex items-center justify-between z-40">
-        <div className="flex items-center gap-3">
+      {/* ========================================================= */}
+      {/* 1. DESKTOP SIDEBAR (Large Screens >= 1024px)              */}
+      {/* ========================================================= */}
+      <aside
+        className={`hidden lg:flex fixed top-0 bottom-0 left-0 z-40 flex-col justify-between transition-all duration-300 select-none print:hidden ${
+          isExpanded ? 'w-60' : 'w-[68px]'
+        } ${
+          isDark
+            ? 'bg-[#080b12]/95 border-r border-slate-800/80 shadow-[4px_0_24px_rgba(0,0,0,0.6)] backdrop-blur-xl'
+            : 'bg-white border-r border-slate-200/90 shadow-xs'
+        }`}
+      >
+        {/* Top Scrollable Section: Brand, Commands & Navigation Links */}
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-3.5 flex flex-col gap-3">
+          {/* Brand Header */}
+          <div
+            className={`flex items-center ${
+              isExpanded ? 'justify-between px-1.5' : 'justify-center'
+            } py-1 shrink-0`}
+          >
+            <button
+              type="button"
+              onClick={() => handleNavSelect('overview')}
+              className="flex items-center gap-3 cursor-pointer group text-left"
+              title="OMNI Personal Home Server"
+            >
+              <BrandLogo className="w-8 h-8 rounded-xl shrink-0 transition-transform group-hover:scale-105" />
+              {isExpanded && (
+                <div className="min-w-0 flex flex-col justify-center">
+                  <span
+                    className={`font-mono font-bold text-sm tracking-tight block truncate leading-tight ${
+                      isDark ? 'text-slate-100' : 'text-slate-800'
+                    }`}
+                  >
+                    OMNI
+                  </span>
+                  <span className={`text-[11px] block truncate leading-tight mt-0.5 ${
+                    isDark ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
+                    {t('brand_subtitle', 'Personal Home Server')}
+                  </span>
+                </div>
+              )}
+            </button>
+
+            {/* Collapse / Expand Toggle Button */}
+            {isExpanded && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(false)}
+                className={`p-1.5 rounded-lg border transition-all ${
+                  isDark
+                    ? 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                    : 'border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                title="Collapse Sidebar"
+              >
+                <ChevronsLeft className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {!isExpanded && (
+            <div className="flex justify-center pt-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsExpanded(true)}
+                className={`p-1.5 rounded-lg border transition-all ${
+                  isDark
+                    ? 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                    : 'border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                title="Expand Sidebar"
+              >
+                <ChevronsRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Quick Search / Command Palette Trigger */}
           <button
             type="button"
-            onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors active:scale-95"
-            aria-label="Buka Menu"
+            onClick={onOpenCommandPalette}
+            className={`w-full flex items-center rounded-xl border font-mono text-xs cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] shrink-0 ${
+              isExpanded ? 'px-3 py-2 justify-between' : 'p-2.5 justify-center'
+            } ${
+              isDark
+                ? 'bg-white/[0.02] border-slate-800/90 text-slate-400 hover:border-indigo-500/50 hover:bg-white/[0.05] hover:text-slate-200 hover:shadow-[0_0_12px_rgba(99,102,241,0.12)]'
+                : 'bg-slate-50/80 border-slate-200 text-slate-600 font-medium hover:border-indigo-300 hover:bg-slate-100 hover:text-slate-900 shadow-2xs'
+            }`}
+            title="Search Menu & Commands (⌘K)"
           >
-            <Menu className="w-5 h-5" />
+            <div className="flex items-center space-x-2">
+              <Command className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-6 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+              {isExpanded && <span>{t('quick_search', 'Commands')}</span>}
+            </div>
+            {isExpanded && (
+              <kbd
+                className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border transition-colors ${
+                  isDark
+                    ? 'bg-slate-800/80 border-slate-700/80 text-slate-400'
+                    : 'bg-white border-slate-200 text-slate-500'
+                }`}
+              >
+                {isMac ? '⌘K' : 'Ctrl+K'}
+              </kbd>
+            )}
           </button>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-zinc-100">{getActiveTabLabel()}</span>
-          </div>
+
+          {/* Grouped Navigation Links */}
+          <nav className="flex flex-col gap-2.5 pt-1">
+            {navGroups.map((group, groupIdx) => (
+              <div key={group.id} className="flex flex-col gap-1">
+                {/* Group Section Header or Collapsed Divider */}
+                {isExpanded ? (
+                  <div className={`px-2.5 pb-0.5 flex items-center justify-between ${
+                    groupIdx > 0 ? 'mt-1 pt-2 border-t ' + (isDark ? 'border-slate-800/60' : 'border-slate-100') : 'pt-1'
+                  }`}>
+                    <span className={`text-[10px] font-mono font-bold tracking-wider uppercase select-none ${
+                      isDark ? 'text-slate-500' : 'text-slate-400'
+                    }`}>
+                      {group.title}
+                    </span>
+                  </div>
+                ) : (
+                  groupIdx > 0 && (
+                    <div className="my-1 flex justify-center">
+                      <div className={`w-6 border-t ${isDark ? 'border-slate-800/80' : 'border-slate-200'}`} />
+                    </div>
+                  )
+                )}
+
+                {/* Nav Items in Group */}
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNavSelect(item.id)}
+                      className={`relative flex items-center h-[38px] rounded-xl font-mono text-xs transition-colors duration-150 active:scale-[0.98] cursor-pointer group ${
+                        isExpanded ? 'px-3 space-x-3' : 'px-0 justify-center'
+                      } ${
+                        isActive
+                          ? isDark
+                            ? 'text-indigo-300 font-semibold'
+                            : 'text-indigo-700 font-semibold'
+                          : isDark
+                          ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
+                      title={item.label}
+                    >
+                      {/* Fluid Active Pill with Motion layoutId */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeSidebarIndicator"
+                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                          className={`absolute inset-0 rounded-xl pointer-events-none ${
+                            isDark
+                              ? 'bg-indigo-600/15 border border-indigo-500/35 shadow-[0_0_14px_rgba(99,102,241,0.2)]'
+                              : 'bg-indigo-50 border border-indigo-200 shadow-2xs'
+                          }`}
+                        />
+                      )}
+
+                      {isActive && isExpanded && (
+                        <motion.span
+                          layoutId="activeSidebarIndicatorBar"
+                          transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                          className={`absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full z-10 ${
+                            isDark ? 'bg-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.9)]' : 'bg-indigo-600 shadow-xs'
+                          }`}
+                        />
+                      )}
+                      <Icon
+                        className={`w-4 h-4 shrink-0 relative z-10 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          isActive
+                            ? isDark
+                              ? 'text-indigo-400 scale-110'
+                              : 'text-indigo-600 scale-110'
+                            : isDark
+                            ? 'text-slate-400 group-hover:scale-105 group-hover:text-slate-200'
+                            : 'text-slate-500 group-hover:scale-105 group-hover:text-slate-800'
+                        }`}
+                      />
+                      {isExpanded && <span className="truncate relative z-10">{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
         </div>
 
-        <div className="flex items-center gap-2 relative">
-          <span className="relative flex h-2 w-2">
-            {wsStatus === "connected" && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            )}
-            <span
-              className={`relative inline-flex rounded-full h-2 w-2 ${
-                wsStatus === "connected" ? "bg-emerald-400" : "bg-zinc-600"
-              }`}
-            />
-          </span>
-
-          {/* Mobile Interactive Avatar Button */}
-          <button
-            ref={mobileAvatarRef}
-            type="button"
-            onClick={() => setMobileUserMenuOpen((prev) => !prev)}
-            className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-xs font-bold text-white shadow-sm ring-1 ring-white/10 active:scale-95 transition-all hover:ring-indigo-400/50"
-            title="Buka Pengaturan & Akun"
-            aria-label="Buka Pengaturan & Akun"
-          >
-            {username ? username.charAt(0).toUpperCase() : "A"}
-          </button>
-
-          {/* Mobile Top Header Dropdown Menu */}
-          {mobileUserMenuOpen && (
-            <div
-              ref={mobileMenuRef}
-              className="absolute top-full right-0 mt-2 w-64 rounded-2xl bg-[#121215] border border-zinc-800 p-2.5 shadow-2xl z-50 animate-fadeIn text-xs text-zinc-100 space-y-1.5"
-            >
-              <div className="px-2.5 py-1.5 border-b border-zinc-800/80">
-                <p className="font-bold text-zinc-100 truncate">{username || "Arusuka"}</p>
-                <p className="text-[10px] text-zinc-500 font-mono">Arusuka Workspace</p>
+        {/* Bottom Section: User Profile & Actions (Pinned at bottom) */}
+        <div className={`p-3.5 border-t shrink-0 flex flex-col gap-2 relative ${
+          isDark ? 'border-slate-800/80 bg-[#080b12]' : 'border-slate-200 bg-white'
+        }`} ref={menuRef}>
+          {/* Language Switcher Pill */}
+          {isExpanded ? (
+            <div className={`flex items-center justify-between p-1.5 rounded-xl border font-mono text-[11px] ${
+              isDark ? 'bg-white/[0.02] border-slate-800/80 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+            }`}>
+              <div className="flex items-center space-x-1.5 pl-1">
+                <Globe className={`w-3.5 h-3.5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                <span className="font-semibold text-[10px] uppercase tracking-wider">{t('language_label', 'Lang')}</span>
               </div>
-
-              {/* Language Switcher in Mobile Header Menu */}
-              <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-zinc-950/80 border border-zinc-800/80">
-                <span className="text-[10px] font-mono text-zinc-500">Bahasa:</span>
-                <div className="flex items-center gap-1">
-                  {supportedLanguages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => setLanguage(lang.code)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors ${
-                        language === lang.code
-                          ? "bg-zinc-800 text-zinc-100 border border-zinc-700"
-                          : "text-zinc-500 hover:text-zinc-300"
-                      }`}
-                    >
-                      {lang.shortLabel}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileUserMenuOpen(false);
-                  handleNavClick("profile");
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors text-left"
-              >
-                <span className="flex items-center gap-2">
-                  <UserCheck className="w-3.5 h-3.5 text-pink-400" />
-                  <span>{t("nav_profile", "Editor CV & Profil")}</span>
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileUserMenuOpen(false);
-                  onOpenChangePassword();
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors text-left"
-              >
-                <span className="flex items-center gap-2">
-                  <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{t("btn_change_password", "Ganti Password")}</span>
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
-              </button>
-
-              <a
-                href="https://status.arusuka.my.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-emerald-300 hover:text-emerald-200 hover:bg-emerald-500/10 transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Uptime Monitor</span>
-                </span>
-                <span className="text-[9px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">LIVE</span>
-              </a>
-
-              <a
-                href="https://arusuka.my.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between px-2.5 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Web Utama</span>
-                </span>
-                <span className="text-[10px] text-zinc-500 font-mono">arusuka.my.id</span>
-              </a>
-
-              <div className="pt-1 border-t border-zinc-800/80">
+              <div className={`relative flex items-center p-0.5 rounded-lg ${isDark ? 'bg-slate-900/90 border border-slate-800' : 'bg-slate-200/80 border border-slate-300/60'}`}>
+                {/* Sliding highlight indicator with Motion layoutId */}
+                <motion.div
+                  layoutId="activeLangIndicator"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  className={`absolute top-0.5 bottom-0.5 rounded-md pointer-events-none ${
+                    language === 'id' ? 'left-0.5 w-[calc(50%-2px)]' : 'left-[calc(50%+1px)] w-[calc(50%-2px)]'
+                  } ${
+                    isDark
+                      ? 'bg-indigo-600/30 border border-indigo-500/50 shadow-[0_0_12px_rgba(99,102,241,0.25)]'
+                      : 'bg-white border border-slate-200 shadow-xs'
+                  }`}
+                />
                 <button
                   type="button"
-                  onClick={handleLogoutClick}
-                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-left font-medium"
+                  onClick={() => setLanguage('id')}
+                  className={`relative z-10 px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-colors duration-200 cursor-pointer ${
+                    language === 'id'
+                      ? isDark ? 'text-indigo-300 font-extrabold' : 'text-indigo-700 font-extrabold'
+                      : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Bahasa Indonesia"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>{t("btn_logout", "Keluar")}</span>
+                  ID
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`relative z-10 px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-colors duration-200 cursor-pointer ${
+                    language === 'en'
+                      ? isDark ? 'text-indigo-300 font-extrabold' : 'text-indigo-700 font-extrabold'
+                      : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="English"
+                >
+                  EN
                 </button>
               </div>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setLanguage(language === 'en' ? 'id' : 'en')}
+              className={`w-full flex items-center justify-center p-2 rounded-xl border font-mono text-[11px] font-bold transition-all cursor-pointer ${
+                isDark
+                  ? 'border-slate-800 text-slate-400 hover:text-indigo-300 hover:bg-white/[0.04]'
+                  : 'border-slate-200 text-slate-600 hover:text-indigo-700 hover:bg-slate-100'
+              }`}
+              title={language === 'en' ? 'Ganti ke Bahasa Indonesia' : 'Switch to English'}
+            >
+              <span className="uppercase text-[10px]">{language}</span>
+            </button>
           )}
-        </div>
-      </header>
 
-      {/* 2. Mobile Drawer Backdrop & Sidebar */}
-      {mobileOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fadeIn"
-          onClick={() => setMobileOpen(false)}
-        >
-          <div
-            className="w-72 h-full bg-[#0c0d12] border-r border-zinc-800 shadow-2xl animate-slideRight"
-            onClick={(e) => e.stopPropagation()}
+          {/* User Popover Trigger */}
+          <button
+            type="button"
+            onClick={() => setUserMenuOpen((prev) => !prev)}
+            className={`w-full flex items-center rounded-xl p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] cursor-pointer ${
+              isExpanded ? 'space-x-3 justify-between' : 'justify-center'
+            } ${
+              isDark
+                ? 'hover:bg-white/[0.05] text-slate-300'
+                : 'hover:bg-slate-100 text-slate-800'
+            }`}
+            title="Account Settings"
           >
-            {SidebarContent}
-          </div>
-        </div>
-      )}
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <div
+                className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-all duration-200 group-hover:scale-105 ${
+                  isDark
+                    ? 'bg-slate-800/80 border-slate-700 text-indigo-300 shadow-xs'
+                    : 'bg-slate-100 border-slate-200 text-slate-800 shadow-2xs'
+                }`}
+              >
+                {user?.display_name ? user.display_name.charAt(0).toUpperCase() : (user?.username ? user.username.charAt(0).toUpperCase() : 'F')}
+              </div>
+              {isExpanded && (
+                <div className="min-w-0 text-left">
+                  <span className={`font-mono text-xs font-semibold block truncate ${
+                    isDark ? 'text-slate-200' : 'text-slate-800'
+                  }`}>
+                    {user?.display_name || user?.username || 'Fahmi'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </button>
 
-      {/* 3. Desktop Static Left Sidebar */}
-      <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-64 lg:w-72 bg-[#0c0d12] border-r border-zinc-800 z-40 flex-col shadow-2xl">
-        {SidebarContent}
+          {/* User Dropdown Menu Popover with AnimatePresence */}
+          <AnimatePresence>
+            {userMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 6 }}
+                transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                className={`absolute bottom-full left-3.5 mb-2 w-56 rounded-2xl border p-2 shadow-xl backdrop-blur-xl z-50 origin-bottom-left ${
+                  isDark
+                    ? 'bg-[#0f1422]/95 border-slate-800 text-slate-200 shadow-[0_16px_36px_rgba(0,0,0,0.8)]'
+                    : 'bg-white border-slate-200 text-slate-800 shadow-xl'
+                }`}
+              >
+                <div className={`px-2.5 py-1.5 border-b mb-1 ${
+                  isDark ? 'border-slate-800/60' : 'border-slate-100'
+                }`}>
+                  <span className={`font-mono text-xs font-semibold block truncate ${
+                    isDark ? 'text-slate-200' : 'text-slate-800'
+                  }`}>
+                    {user?.display_name || user?.username || 'Fahmi'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserMenuOpen(false);
+                    onOpenChangePassword();
+                  }}
+                  className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-xl text-xs font-mono font-medium transition-all duration-150 active:scale-[0.98] cursor-pointer ${
+                    isDark ? 'hover:bg-white/[0.05] text-slate-200' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <KeyRound className={`w-3.5 h-3.5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                  <span>{t('btn_change_password', 'Change Password')}</span>
+                </button>
+
+                <div className={`pt-1 border-t mt-1 ${isDark ? 'border-slate-800/60' : 'border-slate-100'}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      onOpenLogoutConfirm();
+                    }}
+                    className={`w-full flex items-center space-x-2 px-2.5 py-2 rounded-xl text-xs font-mono font-medium transition-all duration-150 active:scale-[0.98] cursor-pointer ${
+                      isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+                    }`}
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{t('btn_logout', 'Sign Out')}</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </aside>
+
+      {/* ========================================================= */}
+      {/* 2. MOBILE SLIDE-OVER DRAWER (Screens < 1024px)             */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            onClick={() => setIsMobileOpen(false)}
+          >
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              className={`w-72 h-full border-r p-4 flex flex-col justify-between shadow-2xl ${
+                isDark
+                  ? 'bg-[#080b12] border-slate-800 text-slate-200'
+                  : 'bg-white border-slate-200 text-slate-800'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="space-y-4 overflow-y-auto pr-1">
+                {/* Header */}
+                <div className={`flex items-center justify-between pb-3 border-b ${
+                  isDark ? 'border-slate-800/80' : 'border-slate-200'
+                }`}>
+                  <div className="flex items-center gap-2.5">
+                    <BrandLogo className="w-7 h-7 rounded-lg shrink-0" />
+                    <div className="flex flex-col justify-center min-w-0">
+                      <span className={`font-mono font-bold text-sm block leading-tight ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>OMNI</span>
+                      <span className={`text-[10px] block leading-tight mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Personal Home Server</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`p-1.5 rounded-lg border ${
+                      isDark
+                        ? 'border-slate-800 text-slate-400 hover:text-white'
+                        : 'border-slate-200 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Mobile Grouped Nav Links */}
+                <nav className="flex flex-col gap-2.5">
+                  {navGroups.map((group, groupIdx) => (
+                    <div key={group.id} className="flex flex-col gap-1">
+                      <div className={`px-2.5 pb-0.5 flex items-center justify-between ${
+                        groupIdx > 0 ? 'mt-1 pt-2 border-t ' + (isDark ? 'border-slate-800/50' : 'border-slate-100') : 'pt-0.5'
+                      }`}>
+                        <span className={`text-[10px] font-mono font-bold tracking-wider uppercase select-none ${
+                          isDark ? 'text-slate-500' : 'text-slate-400'
+                        }`}>
+                          {group.title}
+                        </span>
+                      </div>
+
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleNavSelect(item.id)}
+                            className={`relative flex items-center h-[40px] space-x-3 px-3 rounded-xl font-mono text-xs transition-colors duration-150 cursor-pointer ${
+                              isActive
+                                ? isDark
+                                  ? 'text-indigo-300 font-semibold'
+                                  : 'text-indigo-700 font-semibold'
+                                : isDark
+                                ? 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                            }`}
+                          >
+                            {isActive && (
+                              <motion.div
+                                layoutId="activeMobileSidebarIndicator"
+                                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                                className={`absolute inset-0 rounded-xl pointer-events-none ${
+                                  isDark
+                                    ? 'bg-indigo-600/20 border border-indigo-500/40 shadow-[0_0_14px_rgba(99,102,241,0.2)]'
+                                    : 'bg-indigo-50 border border-indigo-200 shadow-xs'
+                                }`}
+                              />
+                            )}
+                            {isActive && (
+                              <motion.span
+                                layoutId="activeMobileSidebarBar"
+                                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                                className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full z-10 ${
+                                  isDark ? 'bg-indigo-400' : 'bg-indigo-600'
+                                }`}
+                              />
+                            )}
+                            <Icon
+                              className={`w-4 h-4 relative z-10 transition-all duration-200 ${
+                                isActive
+                                  ? isDark ? 'text-indigo-400 scale-105' : 'text-indigo-600 scale-105'
+                                  : isDark ? 'text-slate-400' : 'text-slate-500'
+                              }`}
+                            />
+                            <span className="relative z-10">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </nav>
+              </div>
+
+              {/* Mobile Footer Actions */}
+              <div className={`pt-4 border-t space-y-2 ${isDark ? 'border-slate-800/80' : 'border-slate-200'}`}>
+                {/* Mobile Language Switcher */}
+                <div className={`flex items-center justify-between p-2.5 rounded-xl border text-xs font-mono font-medium ${
+                  isDark ? 'border-slate-800 text-slate-300 bg-white/[0.02]' : 'border-slate-200 text-slate-700 bg-slate-50'
+                }`}>
+                  <div className="flex items-center space-x-2">
+                    <Globe className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                    <span>{t('language_label', 'Language')}</span>
+                  </div>
+                  <div className={`relative flex items-center p-0.5 rounded-lg ${isDark ? 'bg-slate-900/90 border border-slate-800' : 'bg-slate-200/80 border border-slate-300/60'}`}>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('id')}
+                      className={`relative z-10 px-3 py-1 rounded-md text-xs font-bold transition-colors duration-200 cursor-pointer ${
+                        language === 'id'
+                          ? isDark ? 'text-indigo-300 font-extrabold' : 'text-indigo-700 font-extrabold'
+                          : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      ID
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('en')}
+                      className={`relative z-10 px-3 py-1 rounded-md text-xs font-bold transition-colors duration-200 cursor-pointer ${
+                        language === 'en'
+                          ? isDark ? 'text-indigo-300 font-extrabold' : 'text-indigo-700 font-extrabold'
+                          : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      EN
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    setIsMobileOpen(false);
+                    onToggleTheme(e);
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-xs font-mono font-medium transition-colors cursor-pointer ${
+                    isDark
+                      ? 'border-slate-800 text-slate-300 hover:bg-slate-900/60'
+                      : 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>{t('theme_mode', 'Theme Mode')}</span>
+                  <div className={`transition-transform duration-500 ease-[cubic-bezier(0.2,0,0,1)] ${isDark ? 'rotate-0' : 'rotate-180'}`}>
+                    {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileOpen(false);
+                    onOpenChangePassword();
+                  }}
+                  className={`w-full flex items-center space-x-2 p-2.5 rounded-xl border text-xs font-mono font-medium cursor-pointer ${
+                    isDark
+                      ? 'border-slate-800 text-slate-300 hover:bg-slate-900/60'
+                      : 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100'
+                  }`}
+                >
+                  <KeyRound className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                  <span>{t('btn_change_password', 'Change Password')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileOpen(false);
+                    onOpenLogoutConfirm();
+                  }}
+                  className={`w-full flex items-center space-x-2 p-2.5 rounded-xl border text-xs font-mono font-medium cursor-pointer ${
+                    isDark
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+                      : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+                  }`}
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{t('btn_logout', 'Sign Out')}</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

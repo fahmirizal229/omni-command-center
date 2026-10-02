@@ -40,7 +40,7 @@ def load_or_init_auth_config() -> dict:
             "username": "arusuka",
             "password_hash": default_pwd_hash,
             "secret_key": secret_key,
-            "session_expire_days": 30
+            "session_expire_days": 1
         }
         AUTH_FILE.write_text(json.dumps(config, indent=2), encoding="utf-8")
         try:
@@ -61,7 +61,7 @@ def load_or_init_auth_config() -> dict:
             "username": "arusuka",
             "password_hash": default_pwd_hash,
             "secret_key": secret_key,
-            "session_expire_days": 30
+            "session_expire_days": 1
         }
         AUTH_FILE.write_text(json.dumps(config, indent=2), encoding="utf-8")
         return config
@@ -70,7 +70,7 @@ def create_session_token(username: str) -> str:
     """Create signed HMAC-SHA256 session token with nonce and expiration timestamp."""
     config = load_or_init_auth_config()
     secret = config["secret_key"].encode("utf-8")
-    expire_days = config.get("session_expire_days", 30)
+    expire_days = config.get("session_expire_days", 1)
     expire_ts = int(time.time()) + (expire_days * 86400)
     nonce = secrets.token_hex(8)
     payload = f"{username}:{expire_ts}:{nonce}"

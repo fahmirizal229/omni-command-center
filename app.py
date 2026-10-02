@@ -32,6 +32,16 @@ from backend.routes.schedules import router as schedules_router
 from backend.routes.portfolio import router as portfolio_router
 from backend.routes.sessions import router as sessions_router
 from backend.routes.miniapp import router as miniapp_router
+from backend.routes.whatsapp import router as whatsapp_router
+from backend.routes.diet import router as diet_router
+from backend.routes.terminal import router as terminal_router
+from backend.routes.kuro import router as kuro_router
+from backend.routes.shiro import router as shiro_router
+from backend.routes.database_gui import router as database_gui_router
+from backend.routes.security_radar import router as security_router
+from backend.routes.warroom import router as warroom_router
+from backend.routes.sentinel import router as sentinel_router
+from backend.routes.tech_radar import router as tech_radar_router
 
 
 async def auto_retention_loop():
@@ -99,6 +109,16 @@ app.include_router(zepp_router)
 app.include_router(schedules_router)
 app.include_router(portfolio_router)
 app.include_router(sessions_router)
+app.include_router(whatsapp_router)
+app.include_router(diet_router)
+app.include_router(terminal_router)
+app.include_router(kuro_router)
+app.include_router(shiro_router)
+app.include_router(database_gui_router)
+app.include_router(security_router)
+app.include_router(warroom_router)
+app.include_router(sentinel_router)
+app.include_router(tech_radar_router)
 
 
 # --- Real-Time WebSocket Endpoints ---
@@ -141,10 +161,14 @@ class CachedStaticFiles(StaticFiles):
         return response
 
 
-DIST_DIR = HOME_DIR / "dashboard" / "dist_ui"
-if not DIST_DIR.exists():
+DIST_DIR = HOME_DIR / "dashboard" / "frontend/dist"
+if not (DIST_DIR / "index.html").exists():
     DIST_DIR = HOME_DIR / "dashboard" / "frontend" / "dist"
-if not DIST_DIR.exists():
+if not (DIST_DIR / "index.html").exists():
+    DIST_DIR = HOME_DIR / "dashboard" / "dist_ui"
+if not (DIST_DIR / "index.html").exists():
+    DIST_DIR = HOME_DIR / "dashboard" / "dist_build"
+if not (DIST_DIR / "index.html").exists():
     DIST_DIR = HOME_DIR / "dashboard" / "dist"
 STATIC_DIR = HOME_DIR / "dashboard" / "static"
 
@@ -155,9 +179,14 @@ elif (STATIC_DIR / "assets").exists():
 
 
 @app.get("/favicon.ico")
+@app.get("/favicon.svg")
 def favicon():
-    if (DIST_DIR / "favicon.ico").exists():
-        return FileResponse(str(DIST_DIR / "favicon.ico"), headers={"Cache-Control": "public, max-age=86400"})
+    svg_file = DIST_DIR / "favicon.svg"
+    if svg_file.exists():
+        return FileResponse(str(svg_file), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+    ico_file = DIST_DIR / "favicon.ico"
+    if ico_file.exists():
+        return FileResponse(str(ico_file), headers={"Cache-Control": "public, max-age=86400"})
     return HTMLResponse("", status_code=204)
 
 

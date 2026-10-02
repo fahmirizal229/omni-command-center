@@ -9,6 +9,7 @@ export function WebSocketProvider({ children }) {
   const [wsStatus, setWsStatus] = useState('disconnected'); // 'connecting' | 'connected' | 'disconnected'
   const [lastMessage, setLastMessage] = useState(null);
   const [lastTelemetry, setLastTelemetry] = useState(null);
+  const [lastSwarm, setLastSwarm] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const pingIntervalRef = useRef(null);
@@ -75,6 +76,9 @@ export function WebSocketProvider({ children }) {
 
           if (data.type === 'telemetry') {
             setLastTelemetry(data.system);
+            if (data.swarm) {
+              setLastSwarm(data.swarm);
+            }
           }
 
           if (data.type && listenersRef.current.has(data.type)) {
@@ -145,7 +149,7 @@ export function WebSocketProvider({ children }) {
   }, [isAuthenticated, connect]);
 
   return (
-    <WebSocketContext.Provider value={{ wsStatus, lastMessage, lastTelemetry, sendMessage, addListener, reconnect: connect }}>
+    <WebSocketContext.Provider value={{ wsStatus, lastMessage, lastTelemetry, lastSwarm, sendMessage, addListener, reconnect: connect }}>
       {children}
     </WebSocketContext.Provider>
   );
@@ -158,3 +162,4 @@ export function useWebSocket() {
   }
   return ctx;
 }
+

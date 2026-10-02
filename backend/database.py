@@ -249,22 +249,22 @@ DEFAULT_PROFILE_DATA = {
             "highlightId": "Mengembangkan dan mengelola aplikasi web serta backend API untuk instansi pemerintah, BUMN, dan proyek IoT.",
             "modules": [
                 {
-                    "title": "Portal Instansi Pemerintah",
+                    "title": "Municipal & Public Sector Portals",
                     "descEn": "Built asset management & proposal approval portal for Surabaya City Government, and vehicle registration system for Dishub.",
                     "descId": "Membangun sistem manajemen aset dan proposal untuk Pemkot Surabaya, serta sistem penomoran registrasi kendaraan Dishub."
                 },
                 {
-                    "title": "Aplikasi Enterprise & BUMN",
+                    "title": "Enterprise ERP & State-Owned Systems",
                     "descEn": "Engineered internal ERP modules for Petrokimia Gresik (Nisa), project management system for PT WIKA (SIP), and portal for Universitas Pertamina.",
                     "descId": "Mengembangkan modul ERP Petrokimia Gresik (Nisa), sistem informasi proyek PT Wijaya Karya (WIKA SIP), dan portal Universitas Pertamina."
                 },
                 {
-                    "title": "Pipeline Telemetri IoT Sensor",
+                    "title": "IoT Sensor Telemetry Pipelines",
                     "descEn": "Built data ingestion backend for Suramadu Bridge telemetry system to capture and monitor structural vibration & environmental data.",
                     "descId": "Membangun backend data ingestion untuk proyek sensor telemetri Jembatan Suramadu guna memantau getaran struktural dan cuaca."
                 },
                 {
-                    "title": "Deployment & Optimasi Database",
+                    "title": "VM Deployments & Database Query Optimization",
                     "descEn": "Managed VM server deployments, query optimization on PostgreSQL, and delivered ongoing bugfixes & maintenance.",
                     "descId": "Mengelola deployment server Virtual Machine, optimasi query database PostgreSQL, serta pemeliharaan rutin aplikasi."
                 }
@@ -448,7 +448,26 @@ DEFAULT_PROFILE_DATA = {
             "badge": "Private Vault",
             "link": "https://dashboard.arusuka.my.id"
         }
-    ]
+    ],
+    "education": [
+        {
+            "institution": "Universitas Pembangunan Nasional 'Veteran' Jawa Timur",
+            "degreeEn": "Bachelor of Computer Science (S.Kom) - Informatics Engineering",
+            "degreeId": "Sarjana Komputer (S.Kom) - Teknik Informatika",
+            "period": "2014 – 2018",
+            "location": "Surabaya, Indonesia",
+            "descEn": "Studied Software Engineering, Database Systems, Computer Networks, and Distributed Computing.",
+            "descId": "Fokus pada Rekayasa Perangkat Lunak, Sistem Basis Data, Jaringan Komputer, dan Komputasi Terdistribusi."
+        }
+    ],
+    "workPreferences": {
+        "workModel": "Remote / Hybrid (Surabaya/Jakarta)",
+        "employmentType": "Full-time, Senior/Lead Contract, Consulting",
+        "noticePeriod": "Standard 1 Month / Negotiable",
+        "timezone": "WIB (UTC+7) • Flexible Overlap",
+        "preferredRoles": "Senior Backend Engineer, Lead Software Engineer, Cloud Infrastructure",
+        "locationPreference": "Surabaya (Onsite/Hybrid), Jakarta (Hybrid/Remote), Worldwide (Full Remote)"
+    }
 }
 
 def get_db_connection(db_path: Path) -> sqlite3.Connection:

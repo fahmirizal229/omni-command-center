@@ -1,24 +1,40 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full dark">
+<html lang="id" class="h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Dashboard | Arusuka</title>
   
+  <script>
+    (function() {
+      try {
+        var theme = localStorage.getItem('omni_theme') || localStorage.getItem('theme');
+        var metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+          if (metaTheme) metaTheme.setAttribute('content', '#f8fafc');
+        } else {
+          document.documentElement.classList.add('dark');
+          if (metaTheme) metaTheme.setAttribute('content', '#08090d');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="alternate icon" href="/favicon.ico" />
+  <link rel="icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#0c0d11" />
+  <meta name="theme-color" content="#08090d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Arusuka" />
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
-<body class="h-full flex flex-col font-sans antialiased text-zinc-100 bg-[#0c0d11] selection:bg-zinc-700 selection:text-white">
+<body class="h-full flex flex-col font-sans antialiased selection:bg-amber-500/30 selection:text-white">
   <div id="root" class="h-full flex flex-col"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>

@@ -35,3 +35,13 @@ storage_vault/
 uploads/
 backups/
 dist_ui/
+dist_build/
+dist_ui_motion/
+backup_neo_spatial/
+frontend/dist_arusuka2/
+frontend/dist_backup_old/
+frontend/dist_old/
+frontend/dist_temp/
+frontend/src_backup_motion/
+graphify-out/
+motion-audits/

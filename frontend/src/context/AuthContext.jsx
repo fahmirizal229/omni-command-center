@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     const handleUnauthorized = () => {
       setIsAuthenticated(false);
       setUsername('');
-      showToast('Sesi otentikasi kamu telah berakhir. Silakan login kembali.', 'warning', 'Sesi Berakhir');
+      showToast("You've been away for a while. Enter your passkey to jump back in.", 'session', 'Session timed out');
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
     }
     setIsAuthenticated(true);
     setUsername(res.username || user);
-    showToast('Login berhasil! Selamat datang kembali.', 'success', 'Selamat Datang');
+    showToast('Welcome back, Fahmi! Workspace unlocked.', 'success', 'Access Granted');
     return res;
   };
 
@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
     setAuthToken('');
     setIsAuthenticated(false);
     setUsername('');
-    showToast('Kamu telah berhasil logout.', 'info', 'Logout Berhasil');
+    showToast("You've been signed out. See you soon!", 'info', 'Signed Out');
   };
 
   return (

@@ -56,7 +56,7 @@ export async function request(endpoint, options = {}) {
   if (response.status === 401 && endpoint !== "/auth/login" && endpoint !== "/auth/status") {
     setAuthToken("");
     window.dispatchEvent(new CustomEvent("auth:unauthorized"));
-    throw new Error("Sesi kamu telah berakhir. Silakan login kembali.");
+    throw new Error("You've been away for a while. Enter your passkey to jump back in.");
   }
 
   const data = await response.json().catch(() => ({}));
@@ -96,6 +96,12 @@ export const api = {
   // --- Core Overview & Telemetry ---
   /** Fetch aggregated overview stats and telemetry snapshot */
   getOverview: () => request("/overview"),
+  /** Send quick instruction or thought note to Arusuka / Inbox */
+  sendArusukaInstruction: (instruction) =>
+    request("/overview/instruction", {
+      method: "POST",
+      body: JSON.stringify({ instruction }),
+    }),
 
   // --- Personal Tasks Kanban ---
   /** Get personal tasks grouped by status column */
@@ -173,11 +179,29 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  /** Scrape and analyze live job URL */
+  analyzeJobUrl: (url) =>
+    request("/jobs/analyze-url", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
+  /** Generate high-converting cover letter */
+  generateCoverLetter: (data) =>
+    request("/jobs/generate-cover-letter", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   /** Create a new job application entry */
   createJob: (job) =>
     request("/jobs", {
       method: "POST",
       body: JSON.stringify(job),
+    }),
+  /** Full update of job application details */
+  updateJob: (jobId, data) =>
+    request(`/jobs/${jobId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
     }),
   /** Update application status */
   updateJobStatus: (jobId, updateData) =>
@@ -187,19 +211,66 @@ export const api = {
     }),
   /** Delete job application entry */
   deleteJob: (jobId) => request(`/jobs/${jobId}`, { method: "DELETE" }),
+  /** Get background-curated jobs by Sentinel */
+  getCuratedJobs: (status = "all", search = "") =>
+    request(`/jobs/curated?status=${status}&search=${encodeURIComponent(search)}`),
+  /** Save curated job into pipeline */
+  saveCuratedJob: (jobId) =>
+    request(`/jobs/curated/${jobId}/save`, { method: "POST" }),
+  /** Dismiss curated job */
+  dismissCuratedJob: (jobId) =>
+    request(`/jobs/curated/${jobId}/dismiss`, { method: "POST" }),
+  /** Trigger manual background scan */
+  scanCuratedJobs: () =>
+    request("/jobs/curated/scan", { method: "POST" }),
 
-  // --- Knowledge & Integrations ---
-  /** Search or retrieve Obsidian Second Brain notes */
-  getSecondBrain: (query = "") => request(`/second-brain${query ? `?query=${encodeURIComponent(query)}` : ""}`),
-  /** Get full content, wikilinks, and backlinks of a specific note */
-  getNoteDetail: (folder, filename) =>
-    request(`/second-brain/note?folder=${encodeURIComponent(folder)}&filename=${encodeURIComponent(filename)}`),
-  /** Get orphan notes with 0 incoming wikilinks */
-  getOrphanNotes: () => request("/second-brain/orphans"),
+  // --- Knowledge & Obsidian Second Brain Vault ---
+  /** Search or retrieve Obsidian Second Brain notes with folder/tag filter */
+  getSecondBrain: (params = {}) => {
+    if (typeof params === "string") {
+      return request(`/second-brain${params ? `?query=${encodeURIComponent(params)}` : ""}`);
+    }
+    const q = new URLSearchParams();
+    if (params.query) q.set("query", params.query);
+    if (params.folder) q.set("folder", params.folder);
+    if (params.tag) q.set("tag", params.tag);
+    const qs = q.toString() ? `?${q.toString()}` : "";
+    return request(`/second-brain${qs}`);
+  },
+  /** Get full content, frontmatter, wikilinks, and backlinks of a specific note */
+  getNoteDetail: (pathOrFolder, filename = "") => {
+    if (filename) {
+      return request(`/second-brain/note?folder=${encodeURIComponent(pathOrFolder)}&filename=${encodeURIComponent(filename)}`);
+    }
+    return request(`/second-brain/note?path=${encodeURIComponent(pathOrFolder)}`);
+  },
+  /** Create or update a markdown note in Second Brain */
+  saveNote: (data) =>
+    request("/second-brain/note", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  /** Get real-time Vault Health Doctor & Link Integrity analysis */
+  getVaultDoctor: () => request("/second-brain/doctor"),
+  /** Get today's daily journal log */
+  getTodayJournal: () => request("/second-brain/today"),
+  /** Quick append reflection or note to today's daily journal */
+  appendTodayJournal: (entry, section = "Quick Notes") =>
+    request("/second-brain/today/append", {
+      method: "POST",
+      body: JSON.stringify({ entry, section }),
+    }),
+  /** Get latest weekly retrospective rollup */
+  getWeeklyRollup: () => request("/second-brain/weekly"),
+  /** Trigger SQLite FTS5 re-index and link synchronization */
+  syncVault: () => request("/second-brain/sync", { method: "POST" }),
   /** Get interactive knowledge graph node-link dataset */
   getNetworkGraph: () => request("/second-brain/network-graph"),
+  /** Get orphan notes with 0 incoming wikilinks */
+  getOrphanNotes: () => request("/second-brain/doctor"),
   /** Get Surabaya weather, AQI, and BMKG earthquake early warning alerts */
   getWeather: () => request("/weather"),
+  getSurabayaWeather: () => request("/weather"),
   /** Get Amazfit / Zepp smartwatch activity and biometric metrics */
   getZepp: () => request("/zepp"),
   /** Get cron automation schedules and next execution times */
@@ -207,36 +278,45 @@ export const api = {
 
   // --- Storage Vault & File Manager ---
   /** List files, directories, breadcrumbs, and disk usage for a vault subpath */
-  getStorageFiles: (path = "") => request(`/storage/files${path ? `?path=${encodeURIComponent(path)}` : ""}`),
+  getStorageFiles: (path = "", refresh = false, vault = "local") => {
+    const params = [];
+    if (path) params.push(`path=${encodeURIComponent(path)}`);
+    if (refresh) params.push(`refresh=true`);
+    if (vault) params.push(`vault=${encodeURIComponent(vault)}`);
+    const qs = params.length > 0 ? `?${params.join("&")}` : "";
+    return request(`/storage/files${qs}`);
+  },
   /** Create a new folder inside the storage vault */
-  createStorageFolder: (path, folder_name) =>
+  createStorageFolder: (path, folder_name, vault = "local") =>
     request("/storage/mkdir", {
       method: "POST",
-      body: JSON.stringify({ path, folder_name }),
+      body: JSON.stringify({ path, folder_name, vault }),
     }),
   /** Rename an existing file or directory inside the vault */
-  renameStorageItem: (path, old_name, new_name) =>
+  renameStorageItem: (path, old_name, new_name, vault = "local") =>
     request("/storage/rename", {
       method: "POST",
-      body: JSON.stringify({ path, old_name, new_name }),
+      body: JSON.stringify({ path, old_name, new_name, vault }),
     }),
   /** Delete a file or directory recursively from the storage vault */
-  deleteStorageItem: (path) =>
+  deleteStorageItem: (path, vault = "local") =>
     request("/storage/delete", {
       method: "DELETE",
-      body: JSON.stringify({ path }),
+      body: JSON.stringify({ path, vault }),
     }),
   /**
    * Upload multiple files or photos with real-time percentage progress callback.
    * @param {string} path - Target directory relative to vault root
    * @param {FileList|File[]} files - Files to upload
    * @param {(percent: number) => void} [onProgress] - Upload progress percentage callback
+   * @param {string} [vault="local"] - "local" or "cloud"
    * @returns {Promise<{ status: string, message: string, uploaded_files: string[] }>}
    */
-  uploadStorageFiles: async (path, files, onProgress = null) => {
+  uploadStorageFiles: async (path, files, onProgress = null, vault = "local") => {
     const token = getAuthToken();
     const formData = new FormData();
     formData.append("path", path || "");
+    formData.append("vault", vault || "local");
     for (let i = 0; i < files.length; i++) {
       formData.append("files", files[i]);
     }
@@ -288,4 +368,128 @@ export const api = {
   getProfile: () => request("/profile"),
   updateProfile: (data) => request("/profile", { method: "PUT", body: JSON.stringify(data) }),
   resetProfile: () => request("/profile/reset", { method: "POST" }),
+
+  // WhatsApp Secretary
+  getWhatsAppStatus: () => request("/whatsapp/status"),
+  getWhatsAppOverview: () => request("/whatsapp/overview"),
+  getWhatsAppInbox: (limit = 50) => request(`/whatsapp/inbox?limit=${limit}`),
+  getWhatsAppQrUrl: () => `${API_BASE}/whatsapp/qr?t=${Date.now()}`,
+  getWhatsAppQrBlob: async () => {
+    const token = getAuthToken();
+    const headers = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/whatsapp/qr?t=${Date.now()}`, {
+      headers,
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.message || "QR code unavailable or device is already connected.");
+    }
+    return await res.blob();
+  },
+
+  // Diet & Nutrition (OMAD)
+  getDietSummary: (date) => request(`/diet/summary${date ? `?target_date=${date}` : ""}`),
+  getMeals: (date) => request(`/diet/meals${date ? `?target_date=${date}` : ""}`),
+  addMeal: (data) => request("/diet/meals", { method: "POST", body: JSON.stringify(data) }),
+  deleteMeal: (id) => request(`/diet/meals/${id}`, { method: "DELETE" }),
+  getWeightHistory: (days = 30) => request(`/diet/weight/history?days=${days}`),
+  getFastingStatus: () => request("/diet/fasting"),
+  startFasting: (data) => request("/diet/fasting/start", { method: "POST", body: JSON.stringify(data) }),
+  endFasting: (notes = "") => request(`/diet/fasting/end?notes=${encodeURIComponent(notes)}`, { method: "POST" }),
+
+  // Zepp & Amazfit Biometrics
+  getZeppFitness: () => request("/zepp"),
+
+  // Weather, AQI & BMKG Geophysics
+  getWeatherDetail: () => request("/weather"),
+
+  // Web Terminal
+  getTerminalUsers: () => request("/terminal/users"),
+
+  // Kuro Team — Autonomous Multi-Agent Swarm
+  getKuroTeam: () => request("/kuro-team"),
+  getKuroTasks: (member_id = null, limit = 50) => request(`/kuro-team/tasks?limit=${limit}${member_id ? `&member_id=${member_id}` : ""}`),
+  autoDetectKuroPrompt: (prompt) => request("/kuro-team/auto-detect", { method: "POST", body: JSON.stringify({ prompt }) }),
+  switchKuroLead: (lead_id) => request("/kuro-team/switch-lead", { method: "POST", body: JSON.stringify({ lead_id }) }),
+
+  // Shiro Team — Lightweight & Repetitive Task Swarm
+  getShiroTeam: () => request("/shiro-team"),
+  getShiroTasks: (member_id = null, limit = 50) => request(`/shiro-team/tasks?limit=${limit}${member_id ? `&member_id=${member_id}` : ""}`),
+  autoDetectShiroPrompt: (prompt) => request("/shiro-team/auto-detect", { method: "POST", body: JSON.stringify({ prompt }) }),
+  switchShiroLead: (lead_id) => request("/shiro-team/switch-lead", { method: "POST", body: JSON.stringify({ lead_id }) }),
+  getShiroRoutines: () => request("/shiro-team/routines"),
+
+
+  // SQLite Database Web GUI Explorer
+  getDatabaseList: () => request("/database/list"),
+  getDatabaseTables: (db_id) => request(`/database/tables?db_id=${encodeURIComponent(db_id)}`),
+  getTableSchema: (db_id, table) => request(`/database/schema?db_id=${encodeURIComponent(db_id)}&table=${encodeURIComponent(table)}`),
+  getTableData: (db_id, table, { page = 1, limit = 50, search = "", sort_col = "", sort_dir = "asc" } = {}) => {
+    const params = new URLSearchParams({
+      db_id,
+      table,
+      page: String(page),
+      limit: String(limit),
+      sort_dir,
+    });
+    if (search) params.append("search", search);
+    if (sort_col) params.append("sort_col", sort_col);
+    return request(`/database/data?${params.toString()}`);
+  },
+  executeDatabaseQuery: (db_id, sql) => request("/database/query", {
+    method: "POST",
+    body: JSON.stringify({ db_id, sql }),
+  }),
+  getDatabaseExportUrl: (db_id, table, format = "csv") => {
+    const token = getAuthToken();
+    return `${API_BASE}/database/export?db_id=${encodeURIComponent(db_id)}&table=${encodeURIComponent(table)}&format=${encodeURIComponent(format)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+  },
+  // POS Terminal & Outlets
+  getPosOutlets: () => request("/pos/outlets"),
+  posAuthPin: (data) => request("/pos/auth/pin", { method: "POST", body: JSON.stringify(data) }),
+  posAuthManager: (data) => request("/pos/auth/manager", { method: "POST", body: JSON.stringify(data) }),
+
+  // Finance & Debt Freedom Engine
+  getFinanceSummary: (extra_monthly = 0) => request(`/finance/summary?extra_monthly=${extra_monthly}`),
+  recordFinancePayment: (data) => request("/finance/payment", { method: "POST", body: JSON.stringify(data) }),
+  recordFinanceTransaction: (data) => request("/finance/transaction", { method: "POST", body: JSON.stringify(data) }),
+
+  // Security & SysGuard Radar
+  getSecurityStatus: () => request("/security/status"),
+  unbanSecurityIp: (ip, jail = "all") => request("/security/unban", { method: "POST", body: JSON.stringify({ ip, jail }) }),
+
+  // Agent War Room & Swarm Visualizer
+  getWarRoomStatus: () => request("/warroom/status"),
+  broadcastWarRoomTask: (data) => request("/warroom/broadcast", { method: "POST", body: JSON.stringify(data) }),
+
+  // Arusuka Sentinel Pulse & Advisory Center
+  getSentinelPulse: () => request("/sentinel/pulse"),
+  getSentinelProposals: (status = "all", domain = "all") => request(`/sentinel/proposals?status=${status}&domain=${domain}`),
+  performSentinelAction: (proposal_id, action, notes = "") =>
+    request(`/sentinel/proposals/${proposal_id}/action`, {
+      method: "POST",
+      body: JSON.stringify({ action, notes }),
+    }),
+  submitSentinelRequest: (data) =>
+    request("/sentinel/request", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getSentinelTelemetry: () => request("/sentinel/telemetry"),
+
+  // Engineering Tech Radar
+  getTechRadarArticles: ({ category = '', search = '', curated_only = false, page = 1, limit = 18 } = {}) => {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (search) params.set('search', search);
+    if (curated_only) params.set('curated_only', 'true');
+    params.set('page', page);
+    params.set('limit', limit);
+    return request(`/tech-radar?${params.toString()}`);
+  },
+  syncTechRadarFeed: () => request('/tech-radar/sync', { method: 'POST' }),
+  bookmarkTechRadarArticle: (articleId) => request(`/tech-radar/${articleId}/bookmark`, { method: 'POST' }),
 };
+

@@ -7,8 +7,9 @@ import os
 import sys
 from pathlib import Path
 
-# Base Paths (Defaults to current user's home directory or environment override)
-HOME_DIR = Path(os.getenv("DASHBOARD_HOME_DIR", str(Path.home())))
+# Base Paths (Defaults to /home/arusuka or environment override / home directory)
+_default_home = Path("/home/arusuka") if Path("/home/arusuka/second-brain").exists() else Path.home()
+HOME_DIR = Path(os.getenv("DASHBOARD_HOME_DIR", str(_default_home)))
 CONFIG_DIR = HOME_DIR / ".config"
 AUTH_FILE = CONFIG_DIR / "dashboard_auth.json"
 

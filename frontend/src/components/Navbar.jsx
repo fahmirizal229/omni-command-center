@@ -1,14 +1,15 @@
 /**
  * @file Navbar.jsx
  * @description Ultra-sleek floating glass header island.
- * Seamlessly integrates live telemetry pulse, clock, language switcher, and profile controls.
+ * Seamlessly integrates the Paul Rand Isometric FR Core logo, live telemetry pulse, clock, language switcher, and profile controls.
  */
 
 import React, { useState, useEffect } from "react";
-import { RefreshCw, KeyRound, LogOut, ExternalLink, Activity, Sparkles, Globe } from "lucide-react";
+import { RefreshCw, KeyRound, LogOut, ExternalLink, Activity, Globe } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useWebSocket } from "../context/WebSocketContext";
 import { useLanguage } from "../context/LanguageContext";
+import { BrandLogoBadge } from "./BrandLogo";
 
 /**
  * Top floating navigation component.
@@ -36,35 +37,33 @@ export function Navbar({ onRefresh, refreshing, onOpenChangePassword, onOpenLogo
 
   return (
     <header className="sticky top-2.5 z-40 px-3 sm:px-6 lg:px-8 max-w-[1920px] w-full mx-auto transition-all pointer-events-none">
-      <div className="pointer-events-auto glass-panel rounded-2xl sm:rounded-3xl px-3.5 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between shadow-[0_12px_36px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.08] backdrop-blur-2xl">
-        {/* Left: Brand Identity & Portal Jump */}
-        <div className="flex items-center space-x-2.5 sm:space-x-3.5">
+      <div className="pointer-events-auto glass-panel rounded-2xl sm:rounded-3xl px-3 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between shadow-[0_16px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.08] backdrop-blur-2xl">
+        {/* Left: Brand Identity with Paul Rand FR Core Logo */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <a
             href="https://arusuka.my.id"
             target="_blank"
             rel="noopener noreferrer"
             title={t("btn_back_main", "Buka Web Utama (arusuka.my.id)")}
-            className="group flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-indigo-500/15 via-indigo-500/10 to-transparent border border-indigo-500/25 hover:border-indigo-400/50 hover:shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all duration-300"
+            className="group flex items-center gap-2.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent border border-emerald-500/25 hover:border-emerald-400/50 hover:shadow-[0_0_24px_rgba(16,185,129,0.25)] transition-all duration-300"
           >
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-            </div>
+            <BrandLogoBadge size="sm" />
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-xs sm:text-sm text-white tracking-tight">Arusuka</span>
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold bg-white/[0.1] text-indigo-300 border border-white/[0.12]">
-                OMNI
+              <span className="font-extrabold text-xs sm:text-sm text-white tracking-tight flex items-center leading-normal">Arusuka</span>
+              <span className="badge-capsule px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                <span className="badge-text">COMMAND</span>
               </span>
             </div>
-            <ExternalLink className="w-3 h-3 text-zinc-400 opacity-60 group-hover:opacity-100 group-hover:text-indigo-300 transition-opacity hidden xs:block" />
+            <ExternalLink className="w-3 h-3 text-zinc-400 opacity-60 group-hover:opacity-100 group-hover:text-emerald-300 transition-opacity hidden xs:block" />
           </a>
         </div>
 
         {/* Center: Live Telemetry Pulse & Digital Clock */}
-        <div className="hidden md:flex items-center space-x-2">
+        <div className="hidden md:flex items-center gap-2.5">
           {/* Realtime WS Indicator */}
           <div
             title={wsStatus === "connected" ? "WebSocket Realtime Connected" : "Connecting WebSocket..."}
-            className={`flex items-center space-x-2 px-3 py-1 rounded-full border text-[11px] font-medium transition-all ${
+            className={`badge-capsule gap-2 px-3 py-1 rounded-full border text-[11px] font-medium transition-all ${
               wsStatus === "connected"
                 ? "bg-emerald-500/[0.1] text-emerald-300 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                 : wsStatus === "connecting"
@@ -72,104 +71,87 @@ export function Navbar({ onRefresh, refreshing, onOpenChangePassword, onOpenLogo
                 : "bg-zinc-800/60 text-zinc-400 border-zinc-700/60"
             }`}
           >
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
               {wsStatus === "connected" && (
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               )}
               <span
                 className={`relative inline-flex rounded-full h-2 w-2 ${
-                  wsStatus === "connected"
-                    ? "bg-emerald-400"
-                    : wsStatus === "connecting"
-                    ? "bg-amber-400"
-                    : "bg-zinc-500"
+                  wsStatus === "connected" ? "bg-emerald-400" : wsStatus === "connecting" ? "bg-amber-400" : "bg-rose-400"
                 }`}
               ></span>
             </span>
-            <span className="tracking-wide text-[10px] font-mono uppercase font-semibold">
-              {wsStatus === "connected"
-                ? t("ws_live", "Live Realtime")
-                : wsStatus === "connecting"
-                ? t("ws_connecting", "Connecting...")
-                : t("ws_offline", "Offline")}
+            <span className="badge-text font-mono text-[10px] tracking-wide">
+              {wsStatus === "connected" ? "LIVE SYNC" : wsStatus === "connecting" ? "CONNECTING" : "OFFLINE"}
             </span>
           </div>
 
-          {/* Live Clock Pill */}
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-zinc-300 shadow-sm">
-            <Activity className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-bold text-zinc-100">{timeStr}</span>
-            <span className="text-zinc-600">•</span>
-            <span className="text-zinc-400 text-[11px]">{dateStr}</span>
+          {/* Clock Pill */}
+          <div className="badge-capsule gap-2 px-3.5 py-1 rounded-full bg-zinc-900/60 border border-white/[0.08] text-xs font-mono text-zinc-300 shadow-inner">
+            <span className="badge-text text-zinc-500 text-[10px]">{dateStr}</span>
+            <span className="text-zinc-600 leading-none">•</span>
+            <span className="badge-text text-emerald-400 font-semibold">{timeStr}</span>
           </div>
         </div>
 
-        {/* Right: Actions, Language & Profile Controls */}
+        {/* Right: Actions & User Controls */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Language Switcher */}
-          <div className="flex items-center bg-white/[0.03] border border-white/[0.08] rounded-xl p-0.5">
-            {supportedLanguages.map((lang) => (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => setLanguage(lang.code)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-all flex items-center space-x-1 ${
-                  language === lang.code
-                    ? "bg-white/[0.12] text-white shadow-sm border border-white/[0.15]"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-                title={lang.label}
-              >
-                <span>{lang.flag}</span>
-                <span className="font-mono">{lang.shortLabel}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Refresh Button */}
+          {/* Refresh Action */}
           <button
-            type="button"
             onClick={onRefresh}
-            title={t("btn_refresh", "Refresh Data")}
-            className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.18] text-zinc-300 hover:text-white transition-all text-xs font-medium flex items-center space-x-1.5 active:scale-95"
+            disabled={refreshing}
+            title={t("btn_refresh", "Perbarui Data")}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/[0.08] hover:border-emerald-500/30 text-zinc-300 hover:text-white flex items-center gap-1.5 text-xs font-medium transition-all"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-zinc-400 ${refreshing ? "animate-spin text-indigo-400" : ""}`} />
-            <span className="hidden lg:inline text-[11px] font-mono">{t("btn_refresh", "Refresh")}</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-emerald-400" : ""}`} />
+            <span className="hidden sm:inline">{refreshing ? t("state_syncing", "Menyelaraskan...") : t("btn_refresh", "Segarkan")}</span>
           </button>
 
-          {/* User Account Controls */}
-          <div className="flex items-center space-x-1 pl-1.5 border-l border-white/[0.08]">
-            <div className="flex items-center space-x-1.5 px-2 py-1 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-zinc-300">
-              <div className="w-5 h-5 rounded-lg bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
-                {username ? username.charAt(0).toUpperCase() : "A"}
-              </div>
-              <span className="font-medium hidden sm:inline text-xs">{username}</span>
+          {/* Language Switcher */}
+          <div className="relative group">
+            <button
+              title="Ganti Bahasa / Switch Language"
+              className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl sm:rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/[0.08] text-zinc-300 hover:text-white flex items-center gap-1 text-xs font-medium transition-all"
+            >
+              <Globe className="w-3.5 h-3.5 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+              <span className="font-mono text-[11px] uppercase font-bold">{language}</span>
+            </button>
+            <div className="absolute right-0 top-full mt-2 hidden group-hover:flex flex-col bg-zinc-900/95 backdrop-blur-xl border border-white/[0.1] rounded-xl shadow-2xl p-1 z-50 min-w-[120px] animate-fadeIn">
+              {supportedLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code)}
+                  className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    language === lang.code
+                      ? "bg-emerald-500/20 text-emerald-300 font-semibold"
+                      : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  }`}
+                >
+                  <span>{lang.name}</span>
+                  {language === lang.code && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                </button>
+              ))}
             </div>
-
-            <button
-              type="button"
-              onClick={onOpenChangePassword}
-              title={t("btn_change_password", "Change Password")}
-              className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-zinc-200 border border-white/[0.08] hover:border-white/[0.15] transition-all active:scale-95"
-            >
-              <KeyRound className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (onOpenLogoutConfirm) {
-                  onOpenLogoutConfirm();
-                } else if (confirm(t("logout_confirm", "Apakah kamu yakin ingin keluar?"))) {
-                  logout();
-                }
-              }}
-              title={t("btn_logout", "Logout")}
-              className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-rose-500/15 text-zinc-400 hover:text-rose-400 border border-white/[0.08] hover:border-rose-500/30 transition-all active:scale-95"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
           </div>
+
+          {/* Security Action */}
+          <button
+            onClick={onOpenChangePassword}
+            title={t("btn_change_password", "Ganti Kata Sandi")}
+            className="p-2 rounded-xl sm:rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-white/[0.08] hover:border-amber-500/30 text-zinc-400 hover:text-amber-300 transition-all hidden sm:flex items-center justify-center"
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Logout Action */}
+          <button
+            onClick={onOpenLogoutConfirm || logout}
+            title={t("btn_logout", "Keluar dari Sesi")}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-300 flex items-center gap-1.5 text-xs font-medium transition-all"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t("btn_logout", "Keluar")}</span>
+          </button>
         </div>
       </div>
     </header>
